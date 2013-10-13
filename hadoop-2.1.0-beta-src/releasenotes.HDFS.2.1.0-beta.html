@@ -1,0 +1,903 @@
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Hadoop HDFS 2.1.0-beta Release Notes</title>
+<STYLE type="text/css">
+	H1 {font-family: sans-serif}
+	H2 {font-family: sans-serif; margin-left: 7mm}
+	TABLE {margin-left: 7mm}
+</STYLE>
+</head>
+<body>
+<h1>Hadoop HDFS 2.1.0-beta Release Notes</h1>
+These release notes include new developer and user-facing incompatibilities, features, and major improvements. 
+<a name="changes"/>
+<h2>Changes since Hadoop 2.0.5-alpha</h2>
+<ul>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5083">HDFS-5083</a>.
+     Blocker bug reported by Kihwal Lee and fixed by Kihwal Lee <br>
+     <b>Update the HDFS compatibility version range</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5027">HDFS-5027</a>.
+     Major improvement reported by Aaron T. Myers and fixed by Aaron T. Myers (datanode)<br>
+     <b>On startup, DN should scan volumes in parallel</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5025">HDFS-5025</a>.
+     Major sub-task reported by Jing Zhao and fixed by Jing Zhao (ha , namenode)<br>
+     <b>Record ClientId and CallId in EditLog to enable rebuilding retry cache in case of HA failover</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5024">HDFS-5024</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal (namenode)<br>
+     <b>Make DatanodeProtocol#commitBlockSynchronization idempotent</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5020">HDFS-5020</a>.
+     Major improvement reported by Jing Zhao and fixed by Jing Zhao (namenode)<br>
+     <b>Make DatanodeProtocol#blockReceivedAndDeleted idempotent</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5018">HDFS-5018</a>.
+     Minor bug reported by Ted Yu and fixed by Ted Yu <br>
+     <b>Misspelled DFSConfigKeys#DFS_NAMENODE_STALE_DATANODE_INTERVAL_DEFAULT in javadoc of DatanodeInfo#isStale()</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5016">HDFS-5016</a>.
+     Blocker bug reported by Devaraj Das and fixed by Suresh Srinivas <br>
+     <b>Deadlock in pipeline recovery causes Datanode to be marked dead</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5010">HDFS-5010</a>.
+     Major improvement reported by Kihwal Lee and fixed by Kihwal Lee (namenode , performance)<br>
+     <b>Reduce the frequency of getCurrentUser() calls from namenode</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5008">HDFS-5008</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Jing Zhao (namenode)<br>
+     <b>Make ClientProtocol#abandonBlock() idempotent</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5007">HDFS-5007</a>.
+     Minor improvement reported by Kousuke Saruta and fixed by Kousuke Saruta <br>
+     <b>Replace hard-coded property keys with DFSConfigKeys fields</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5005">HDFS-5005</a>.
+     Major bug reported by Jing Zhao and fixed by Jing Zhao <br>
+     <b>Move SnapshotException and SnapshotAccessControlException to o.a.h.hdfs.protocol</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-5003">HDFS-5003</a>.
+     Minor bug reported by Xi Fang and fixed by Xi Fang (test)<br>
+     <b>TestNNThroughputBenchmark failed caused by existing directories</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4999">HDFS-4999</a>.
+     Major bug reported by Kihwal Lee and fixed by Colin Patrick McCabe <br>
+     <b>fix TestShortCircuitLocalRead on branch-2</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4998">HDFS-4998</a>.
+     Major bug reported by Kihwal Lee and fixed by Kihwal Lee (test)<br>
+     <b>TestUnderReplicatedBlocks fails intermittently</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4996">HDFS-4996</a>.
+     Minor improvement reported by Chris Nauroth and fixed by Chris Nauroth (namenode)<br>
+     <b>ClientProtocol#metaSave can be made idempotent by overwriting the output file instead of appending to it</b><br>
+     <blockquote>The dfsadmin -metasave command has been changed to overwrite the output file.  Previously, this command would append to the output file if it already existed.</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4992">HDFS-4992</a>.
+     Major improvement reported by Max Lapan and fixed by Max Lapan (balancer)<br>
+     <b>Make balancer's thread count configurable</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4982">HDFS-4982</a>.
+     Major bug reported by Todd Lipcon and fixed by Todd Lipcon (journal-node , security)<br>
+     <b>JournalNode should relogin from keytab before fetching logs from other JNs</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4980">HDFS-4980</a>.
+     Major bug reported by Mark Grover and fixed by Mark Grover (build)<br>
+     <b>Incorrect logging.properties file for hadoop-httpfs</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4979">HDFS-4979</a>.
+     Major sub-task reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Implement retry cache on the namenode</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4978">HDFS-4978</a>.
+     Major improvement reported by Jing Zhao and fixed by Jing Zhao <br>
+     <b>Make disallowSnapshot idempotent</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4974">HDFS-4974</a>.
+     Major sub-task reported by Suresh Srinivas and fixed by Suresh Srinivas (ha , namenode)<br>
+     <b>Analyze and add annotations to Namenode protocol methods and enable retry</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4969">HDFS-4969</a>.
+     Blocker bug reported by Robert Kanter and fixed by Robert Kanter (test , webhdfs)<br>
+     <b>WebhdfsFileSystem expects non-standard WEBHDFS Json element</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4954">HDFS-4954</a>.
+     Major bug reported by Brandon Li and fixed by Brandon Li (nfs)<br>
+     <b>compile failure in branch-2: getFlushedOffset should catch or rethrow IOException</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4951">HDFS-4951</a>.
+     Major bug reported by Robert Kanter and fixed by Robert Kanter (security)<br>
+     <b>FsShell commands using secure httpfs throw exceptions due to missing TokenRenewer</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4948">HDFS-4948</a>.
+     Major bug reported by Robert Joseph Evans and fixed by Brandon Li <br>
+     <b>mvn site for hadoop-hdfs-nfs fails</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4944">HDFS-4944</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (webhdfs)<br>
+     <b>WebHDFS cannot create a file path containing characters that must be URI-encoded, such as space.</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4943">HDFS-4943</a>.
+     Minor bug reported by Jerry He and fixed by Jerry He (webhdfs)<br>
+     <b>WebHdfsFileSystem does not work when original file path has encoded chars </b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4932">HDFS-4932</a>.
+     Minor improvement reported by Fengdong Yu and fixed by Fengdong Yu (ha , namenode)<br>
+     <b>Avoid a wide line on the name node webUI if we have more Journal nodes</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4927">HDFS-4927</a>.
+     Minor bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>CreateEditsLog creates inodes with an invalid inode ID, which then cannot be loaded by a namenode.</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4917">HDFS-4917</a>.
+     Major bug reported by Fengdong Yu and fixed by Fengdong Yu (datanode , namenode)<br>
+     <b>Start-dfs.sh cannot pass the parameters correctly</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4914">HDFS-4914</a>.
+     Minor improvement reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (hdfs-client)<br>
+     <b>When possible, Use DFSClient.Conf instead of Configuration </b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4912">HDFS-4912</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Cleanup FSNamesystem#startFileInternal</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4910">HDFS-4910</a>.
+     Major bug reported by Chuan Liu and fixed by Chuan Liu <br>
+     <b>TestPermission failed in branch-2</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4908">HDFS-4908</a>.
+     Major sub-task reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode , snapshots)<br>
+     <b>Reduce snapshot inode memory usage</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4906">HDFS-4906</a>.
+     Major bug reported by Aaron T. Myers and fixed by Aaron T. Myers (hdfs-client)<br>
+     <b>HDFS Output streams should not accept writes after being closed</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4903">HDFS-4903</a>.
+     Minor improvement reported by Suresh Srinivas and fixed by Arpit Agarwal (namenode)<br>
+     <b>Print trash configuration and trash emptier state in namenode log</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4902">HDFS-4902</a>.
+     Major bug reported by Binglin Chang and fixed by Binglin Chang (snapshots)<br>
+     <b>DFSClient.getSnapshotDiffReport should use string path rather than o.a.h.fs.Path</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4888">HDFS-4888</a>.
+     Major bug reported by Ravi Prakash and fixed by Ravi Prakash <br>
+     <b>Refactor and fix FSNamesystem.getTurnOffTip to sanity</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4887">HDFS-4887</a>.
+     Blocker bug reported by Kihwal Lee and fixed by Kihwal Lee (benchmarks , test)<br>
+     <b>TestNNThroughputBenchmark exits abruptly</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4883">HDFS-4883</a>.
+     Major bug reported by Konstantin Shvachko and fixed by Tao Luo (namenode)<br>
+     <b>complete() should verify fileId</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4880">HDFS-4880</a>.
+     Major bug reported by Arpit Agarwal and fixed by Suresh Srinivas (namenode)<br>
+     <b>Diagnostic logging while loading name/edits files</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4878">HDFS-4878</a>.
+     Major bug reported by Tao Luo and fixed by Tao Luo (namenode)<br>
+     <b>On Remove Block, Block is not Removed from neededReplications queue</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4877">HDFS-4877</a>.
+     Blocker bug reported by Jing Zhao and fixed by Jing Zhao (snapshots)<br>
+     <b>Snapshot: fix the scenario where a directory is renamed under its prior descendant</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4876">HDFS-4876</a>.
+     Minor sub-task reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (snapshots)<br>
+     <b>The javadoc of FileWithSnapshot is incorrect</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4875">HDFS-4875</a>.
+     Minor sub-task reported by Tsz Wo (Nicholas), SZE and fixed by Arpit Agarwal (snapshots , test)<br>
+     <b>Add a test for testing snapshot file length</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4873">HDFS-4873</a>.
+     Major bug reported by Hari Mankude and fixed by Jing Zhao (snapshots)<br>
+     <b>callGetBlockLocations returns incorrect number of blocks for snapshotted files</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4867">HDFS-4867</a>.
+     Major bug reported by Kihwal Lee and fixed by Plamen Jeliazkov (namenode)<br>
+     <b>metaSave NPEs when there are invalid blocks in repl queue.</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4866">HDFS-4866</a>.
+     Blocker bug reported by Ralph Castain and fixed by Arpit Agarwal (namenode)<br>
+     <b>Protocol buffer support cannot compile under C</b><br>
+     <blockquote>The Protocol Buffers definition of the inter-namenode protocol required a change for compatibility with compiled C clients.  This is a backwards-incompatible change.  A namenode prior to this change will not be able to communicate with a namenode after this change.</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4865">HDFS-4865</a>.
+     Major bug reported by Wei Yan and fixed by Wei Yan <br>
+     <b>Remove sub resource warning from httpfs log at startup time</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4863">HDFS-4863</a>.
+     Major bug reported by Jing Zhao and fixed by Jing Zhao (snapshots)<br>
+     <b>The root directory should be added to the snapshottable directory list while loading fsimage </b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4862">HDFS-4862</a>.
+     Major bug reported by Ravi Prakash and fixed by Ravi Prakash <br>
+     <b>SafeModeInfo.isManual() returns true when resources are low even if it wasn't entered into manually</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4857">HDFS-4857</a>.
+     Major bug reported by Jing Zhao and fixed by Jing Zhao (snapshots)<br>
+     <b>Snapshot.Root and AbstractINodeDiff#snapshotINode should not be put into INodeMap when loading FSImage</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4850">HDFS-4850</a>.
+     Major bug reported by Stephen Chu and fixed by Jing Zhao (tools)<br>
+     <b>fix OfflineImageViewer to work on fsimages with empty files or snapshots</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4848">HDFS-4848</a>.
+     Minor improvement reported by Stephen Chu and fixed by Jing Zhao (snapshots)<br>
+     <b>copyFromLocal and renaming a file to ".snapshot" should output that ".snapshot" is a reserved name</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4846">HDFS-4846</a>.
+     Minor bug reported by Stephen Chu and fixed by Jing Zhao (snapshots)<br>
+     <b>Clean up snapshot CLI commands output stacktrace for invalid arguments</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4845">HDFS-4845</a>.
+     Critical bug reported by Kihwal Lee and fixed by Arpit Agarwal (namenode)<br>
+     <b>FSEditLogLoader gets NPE while accessing INodeMap in TestEditLogRace</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4842">HDFS-4842</a>.
+     Major sub-task reported by Jing Zhao and fixed by Jing Zhao (snapshots)<br>
+     <b>Snapshot: identify the correct prior snapshot when deleting a snapshot under a renamed subtree</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4841">HDFS-4841</a>.
+     Major bug reported by Stephen Chu and fixed by Robert Kanter (security , webhdfs)<br>
+     <b>FsShell commands using secure webhfds fail ClientFinalizer shutdown hook</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4840">HDFS-4840</a>.
+     Major bug reported by Kihwal Lee and fixed by Kihwal Lee (namenode)<br>
+     <b>ReplicationMonitor gets NPE during shutdown</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4832">HDFS-4832</a>.
+     Critical bug reported by Ravi Prakash and fixed by Ravi Prakash <br>
+     <b>Namenode doesn't change the number of missing blocks in safemode when DNs rejoin or leave</b><br>
+     <blockquote>This change makes name node keep its internal replication queues and data node state updated in manual safe mode. This allows metrics and UI to present up-to-date information while in safe mode. The behavior during start-up safe mode is unchanged. </blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4830">HDFS-4830</a>.
+     Minor bug reported by Aaron T. Myers and fixed by Aaron T. Myers <br>
+     <b>Typo in config settings for AvailableSpaceVolumeChoosingPolicy in hdfs-default.xml</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4827">HDFS-4827</a>.
+     Major bug reported by Devaraj Das and fixed by Devaraj Das <br>
+     <b>Slight update to the implementation of API for handling favored nodes in DFSClient</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4826">HDFS-4826</a>.
+     Minor bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestNestedSnapshots times out due to repeated slow edit log flushes when running on virtualized disk</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4825">HDFS-4825</a>.
+     Major bug reported by Andrew Wang and fixed by Andrew Wang (webhdfs)<br>
+     <b>webhdfs / httpfs tests broken because of min block size change</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4824">HDFS-4824</a>.
+     Major bug reported by Henry Robinson and fixed by Colin Patrick McCabe (hdfs-client)<br>
+     <b>FileInputStreamCache.close leaves dangling reference to FileInputStreamCache.cacheCleaner</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4819">HDFS-4819</a>.
+     Minor sub-task reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (documentation)<br>
+     <b>Update Snapshot doc for HDFS-4758</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4818">HDFS-4818</a>.
+     Minor bug reported by Chris Nauroth and fixed by Chris Nauroth (namenode , test)<br>
+     <b>several HDFS tests that attempt to make directories unusable do not work correctly on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4815">HDFS-4815</a>.
+     Major bug reported by Tian Hong Wang and fixed by Tian Hong Wang (datanode , test)<br>
+     <b>TestRBWBlockInvalidation#testBlockInvalidationWhenRBWReplicaMissedInDN: Double call countReplicas() to fetch corruptReplicas and liveReplicas is not needed</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4813">HDFS-4813</a>.
+     Minor bug reported by Tsz Wo (Nicholas), SZE and fixed by Jing Zhao (namenode)<br>
+     <b>BlocksMap may throw NullPointerException during shutdown</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4810">HDFS-4810</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>several HDFS HA tests have timeouts that are too short</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4807">HDFS-4807</a>.
+     Major bug reported by Kihwal Lee and fixed by Cristina L. Abad <br>
+     <b>DFSOutputStream.createSocketForPipeline() should not include timeout extension on connect</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4805">HDFS-4805</a>.
+     Critical bug reported by Daryn Sharp and fixed by Daryn Sharp (webhdfs)<br>
+     <b>Webhdfs client is fragile to token renewal errors</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4804">HDFS-4804</a>.
+     Minor improvement reported by Stephen Chu and fixed by Stephen Chu <br>
+     <b>WARN when users set the block balanced preference percent below 0.5 or above 1.0</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4799">HDFS-4799</a>.
+     Blocker bug reported by Todd Lipcon and fixed by Todd Lipcon (namenode)<br>
+     <b>Corrupt replica can be prematurely removed from corruptReplicas map</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4797">HDFS-4797</a>.
+     Minor bug reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (datanode)<br>
+     <b>BlockScanInfo does not override equals(..) and hashCode() consistently</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4787">HDFS-4787</a>.
+     Major improvement reported by Tian Hong Wang and fixed by Tian Hong Wang <br>
+     <b>Create a new HdfsConfiguration before each TestDFSClientRetries testcases</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4785">HDFS-4785</a>.
+     Major sub-task reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Concat operation does not remove concatenated files from InodeMap</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4784">HDFS-4784</a>.
+     Major sub-task reported by Brandon Li and fixed by Brandon Li (namenode)<br>
+     <b>NPE in FSDirectory.resolvePath()</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4783">HDFS-4783</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestDelegationTokensWithHA#testHAUtilClonesDelegationTokens fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4780">HDFS-4780</a>.
+     Minor bug reported by Kihwal Lee and fixed by Robert Parker (namenode)<br>
+     <b>Use the correct relogin method for services</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4778">HDFS-4778</a>.
+     Major bug reported by Devaraj Das and fixed by Devaraj Das (namenode)<br>
+     <b>Invoke getPipeline in the chooseTarget implementation that has favoredNodes</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4772">HDFS-4772</a>.
+     Minor improvement reported by Brandon Li and fixed by Brandon Li (namenode)<br>
+     <b>Add number of children in HdfsFileStatus</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4768">HDFS-4768</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (datanode)<br>
+     <b>File handle leak in datanode when a block pool is removed</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4765">HDFS-4765</a>.
+     Major bug reported by Andrew Wang and fixed by Andrew Wang (namenode)<br>
+     <b>Permission check of symlink deletion incorrectly throws UnresolvedLinkException</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4763">HDFS-4763</a>.
+     Major sub-task reported by Brandon Li and fixed by Brandon Li (nfs)<br>
+     <b>Add script changes/utility for starting NFS gateway</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4762">HDFS-4762</a>.
+     Major sub-task reported by Brandon Li and fixed by Brandon Li (nfs)<br>
+     <b>Provide HDFS based NFSv3 and Mountd implementation</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4751">HDFS-4751</a>.
+     Minor bug reported by Andrew Wang and fixed by Andrew Wang (test)<br>
+     <b>TestLeaseRenewer#testThreadName flakes</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4748">HDFS-4748</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (qjm , test)<br>
+     <b>MiniJournalCluster#restartJournalNode leaks resources, which causes sporadic test failures</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4745">HDFS-4745</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestDataTransferKeepalive#testSlowReader has race condition that causes sporadic failure</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4743">HDFS-4743</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestNNStorageRetentionManager fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4741">HDFS-4741</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal (test)<br>
+     <b>TestStorageRestore#testStorageRestoreFailure fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4740">HDFS-4740</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal (test)<br>
+     <b>Fixes for a few test failures on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4739">HDFS-4739</a>.
+     Major bug reported by Aaron T. Myers and fixed by Aaron T. Myers (namenode)<br>
+     <b>NN can miscalculate the number of extra edit log segments to retain</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4737">HDFS-4737</a>.
+     Major bug reported by Sean Mackrory and fixed by Sean Mackrory <br>
+     <b>JVM path embedded in fuse binaries</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4734">HDFS-4734</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal <br>
+     <b>HDFS Tests that use ShellCommandFencer are broken on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4733">HDFS-4733</a>.
+     Major bug reported by Alejandro Abdelnur and fixed by Alejandro Abdelnur <br>
+     <b>Make HttpFS username pattern configurable</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4732">HDFS-4732</a>.
+     Minor bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestDFSUpgradeFromImage fails on Windows due to failure to unpack old image tarball that contains hard links</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4725">HDFS-4725</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (namenode , test , tools)<br>
+     <b>fix HDFS file handle leaks</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4722">HDFS-4722</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic (test)<br>
+     <b>TestGetConf#testFederation times out on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4721">HDFS-4721</a>.
+     Major improvement reported by Varun Sharma and fixed by Varun Sharma (namenode)<br>
+     <b>Speed up lease/block recovery when DN fails and a block goes into recovery</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4714">HDFS-4714</a>.
+     Major bug reported by Kihwal Lee and fixed by Kihwal Lee (namenode)<br>
+     <b>Log short messages in Namenode RPC server for exceptions meant for clients</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4705">HDFS-4705</a>.
+     Minor bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>Address HDFS test failures on Windows because of invalid dfs.namenode.name.dir</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4699">HDFS-4699</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestPipelinesFailover#testPipelineRecoveryStress fails sporadically</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4698">HDFS-4698</a>.
+     Minor improvement reported by Colin Patrick McCabe and fixed by Colin Patrick McCabe (hdfs-client)<br>
+     <b>provide client-side metrics for remote reads, local reads, and short-circuit reads</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4695">HDFS-4695</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic (test)<br>
+     <b>TestEditLog leaks open file handles between tests</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4693">HDFS-4693</a>.
+     Minor bug reported by Arpit Agarwal and fixed by Arpit Agarwal (test)<br>
+     <b>Some test cases in TestCheckpoint do not clean up after themselves</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4687">HDFS-4687</a>.
+     Minor bug reported by Andrew Wang and fixed by Andrew Wang (test)<br>
+     <b>TestDelegationTokenForProxyUser#testWebHdfsDoAs is flaky with JDK7</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4679">HDFS-4679</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Namenode operation checks should be done in a consistent manner</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4677">HDFS-4677</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>Editlog should support synchronous writes</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4676">HDFS-4676</a>.
+     Minor bug reported by Suresh Srinivas and fixed by Suresh Srinivas (test)<br>
+     <b>TestHDFSFileSystemContract should set MiniDFSCluster variable to null to free up memory</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4674">HDFS-4674</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (test)<br>
+     <b>TestBPOfferService fails on Windows due to failure parsing datanode data directory as URI</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4669">HDFS-4669</a>.
+     Major bug reported by Tian Hong Wang and fixed by Tian Hong Wang (test)<br>
+     <b>TestBlockPoolManager fails using IBM java</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4659">HDFS-4659</a>.
+     Major bug reported by Brandon Li and fixed by Brandon Li (namenode)<br>
+     <b>Support setting execution bit for regular files</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4658">HDFS-4658</a>.
+     Trivial bug reported by Aaron T. Myers and fixed by Aaron T. Myers (ha , namenode)<br>
+     <b>Standby NN will log that it has received a block report "after becoming active"</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4655">HDFS-4655</a>.
+     Minor bug reported by Aaron T. Myers and fixed by Aaron T. Myers (datanode)<br>
+     <b>DNA_FINALIZE is logged as being an unknown command by the DN when received from the standby NN</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4646">HDFS-4646</a>.
+     Minor bug reported by Jagane Sundar and fixed by  (namenode)<br>
+     <b>createNNProxyWithClientProtocol ignores configured timeout value</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4645">HDFS-4645</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Arpit Agarwal (namenode)<br>
+     <b>Move from randomly generated block ID to sequentially generated block ID</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4643">HDFS-4643</a>.
+     Trivial bug reported by Todd Lipcon and fixed by Todd Lipcon (qjm , test)<br>
+     <b>Fix flakiness in TestQuorumJournalManager</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4639">HDFS-4639</a>.
+     Major bug reported by Konstantin Shvachko and fixed by Plamen Jeliazkov (namenode)<br>
+     <b>startFileInternal() should not increment generation stamp</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4635">HDFS-4635</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Move BlockManager#computeCapacity to LightWeightGSet</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4625">HDFS-4625</a>.
+     Minor bug reported by Arpit Agarwal and fixed by Ivan Mitic (test)<br>
+     <b>Make TestNNWithQJM#testNewNamenodeTakesOverWriter work on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4621">HDFS-4621</a>.
+     Minor bug reported by Todd Lipcon and fixed by Todd Lipcon (ha , qjm)<br>
+     <b>additional logging to help diagnose slow QJM logSync</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4620">HDFS-4620</a>.
+     Major bug reported by Sandy Ryza and fixed by Sandy Ryza (documentation)<br>
+     <b>Documentation for dfs.namenode.rpc-address specifies wrong format</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4618">HDFS-4618</a>.
+     Major bug reported by Todd Lipcon and fixed by Todd Lipcon (namenode)<br>
+     <b>default for checkpoint txn interval is too low</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4615">HDFS-4615</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal (test)<br>
+     <b>Fix TestDFSShell failures on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4614">HDFS-4614</a>.
+     Trivial bug reported by Aaron T. Myers and fixed by Aaron T. Myers (namenode)<br>
+     <b>FSNamesystem#getContentSummary should use getPermissionChecker helper method</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4610">HDFS-4610</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>Move to using common utils FileUtil#setReadable/Writable/Executable and FileUtil#canRead/Write/Execute</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4609">HDFS-4609</a>.
+     Minor bug reported by Ivan Mitic and fixed by Ivan Mitic (test)<br>
+     <b>TestAuditLogs should release log handles between tests</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4607">HDFS-4607</a>.
+     Minor bug reported by Ivan Mitic and fixed by Ivan Mitic (test)<br>
+     <b>TestGetConf#testGetSpecificKey fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4604">HDFS-4604</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>TestJournalNode fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4603">HDFS-4603</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>TestMiniDFSCluster fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4602">HDFS-4602</a>.
+     Major sub-task reported by Suresh Srinivas and fixed by Uma Maheswara Rao G <br>
+     <b>TestBookKeeperHACheckpoints fails</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4598">HDFS-4598</a>.
+     Minor bug reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (webhdfs)<br>
+     <b>WebHDFS concat: the default value of sources in the code does not match the doc</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4596">HDFS-4596</a>.
+     Major bug reported by Andrew Wang and fixed by Andrew Wang (namenode)<br>
+     <b>Shutting down namenode during checkpointing can lead to md5sum error</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4595">HDFS-4595</a>.
+     Major bug reported by Suresh Srinivas and fixed by Suresh Srinivas (hdfs-client)<br>
+     <b>When short circuit read is fails, DFSClient does not fallback to regular reads</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4593">HDFS-4593</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal <br>
+     <b>TestSaveNamespace fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4592">HDFS-4592</a>.
+     Minor bug reported by Aaron T. Myers and fixed by Aaron T. Myers (namenode)<br>
+     <b>Default values for access time precision are out of sync between hdfs-default.xml and the code</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4591">HDFS-4591</a>.
+     Major bug reported by Aaron T. Myers and fixed by Aaron T. Myers (ha , namenode)<br>
+     <b>HA clients can fail to fail over while Standby NN is performing long checkpoint</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4586">HDFS-4586</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>TestDataDirs.testGetDataDirsFromURIs fails with all directories in dfs.datanode.data.dir are invalid</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4583">HDFS-4583</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>TestNodeCount fails </b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4582">HDFS-4582</a>.
+     Major bug reported by Ivan Mitic and fixed by Ivan Mitic <br>
+     <b>TestHostsFiles fails on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4573">HDFS-4573</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal (test)<br>
+     <b>Fix TestINodeFile on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4572">HDFS-4572</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal (namenode , test)<br>
+     <b>Fix TestJournal failures on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4569">HDFS-4569</a>.
+     Trivial improvement reported by Andrew Wang and fixed by Andrew Wang <br>
+     <b>Small image transfer related cleanups.</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4565">HDFS-4565</a>.
+     Minor improvement reported by Arpit Gupta and fixed by Arpit Gupta (security)<br>
+     <b>use DFSUtil.getSpnegoKeytabKey() to get the spnego keytab key in secondary namenode and namenode http server</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4544">HDFS-4544</a>.
+     Major bug reported by Amareshwari Sriramadasu and fixed by Arpit Agarwal <br>
+     <b>Error in deleting blocks should not do check disk, for all types of errors</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4542">HDFS-4542</a>.
+     Blocker sub-task reported by Daryn Sharp and fixed by Daryn Sharp (webhdfs)<br>
+     <b>Webhdfs doesn't support secure proxy users</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4541">HDFS-4541</a>.
+     Major bug reported by Arpit Gupta and fixed by Arpit Gupta (datanode , security)<br>
+     <b>set hadoop.log.dir and hadoop.id.str when starting secure datanode so it writes the logs to the correct dir by default</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4540">HDFS-4540</a>.
+     Major bug reported by Arpit Gupta and fixed by Arpit Gupta (security)<br>
+     <b>namenode http server should use the web authentication keytab for spnego principal</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4533">HDFS-4533</a>.
+     Major bug reported by Fengdong Yu and fixed by Fengdong Yu (datanode , namenode)<br>
+     <b>start-dfs.sh ignored additional parameters besides -upgrade</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4532">HDFS-4532</a>.
+     Critical bug reported by Daryn Sharp and fixed by Daryn Sharp (namenode)<br>
+     <b>RPC call queue may fill due to current user lookup</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4525">HDFS-4525</a>.
+     Major sub-task reported by Uma Maheswara Rao G and fixed by SreeHari (namenode)<br>
+     <b>Provide an API for knowing that whether file is closed or not.</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4522">HDFS-4522</a>.
+     Minor bug reported by Colin Patrick McCabe and fixed by Colin Patrick McCabe <br>
+     <b>LightWeightGSet expects incrementing a volatile to be atomic</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4521">HDFS-4521</a>.
+     Minor improvement reported by Colin Patrick McCabe and fixed by Colin Patrick McCabe <br>
+     <b>invalid network topologies should not be cached</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4519">HDFS-4519</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (datanode , scripts)<br>
+     <b>Support override of jsvc binary and log file locations when launching secure datanode.</b><br>
+     <blockquote>With this improvement the following options are available in release 1.2.0 and later on 1.x release stream:
+1. jsvc location can be overridden by setting environment variable JSVC_HOME. Defaults to jsvc binary packaged within the Hadoop distro.
+2. jsvc log output is directed to the file defined by JSVC_OUTFILE. Defaults to $HADOOP_LOG_DIR/jsvc.out.
+3. jsvc error output is directed to the file defined by JSVC_ERRFILE file.  Defaults to $HADOOP_LOG_DIR/jsvc.err.
+
+With this improvement the following options are available in release 2.0.4 and later on 2.x release stream:
+1. jsvc log output is directed to the file defined by JSVC_OUTFILE. Defaults to $HADOOP_LOG_DIR/jsvc.out.
+2. jsvc error output is directed to the file defined by JSVC_ERRFILE file.  Defaults to $HADOOP_LOG_DIR/jsvc.err.
+
+For overriding jsvc location on 2.x releases, here is the release notes from HDFS-2303:
+To run secure Datanodes users must install jsvc for their platform and set JSVC_HOME to point to the location of jsvc in their environment.
+</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4518">HDFS-4518</a>.
+     Major bug reported by Arpit Agarwal and fixed by Arpit Agarwal <br>
+     <b>Finer grained metrics for HDFS capacity</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4502">HDFS-4502</a>.
+     Blocker sub-task reported by Alejandro Abdelnur and fixed by Brandon Li (webhdfs)<br>
+     <b>WebHdfsFileSystem handling of fileld breaks compatibility</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4495">HDFS-4495</a>.
+     Major bug reported by Kihwal Lee and fixed by Kihwal Lee (hdfs-client)<br>
+     <b>Allow client-side lease renewal to be retried beyond soft-limit</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4484">HDFS-4484</a>.
+     Minor bug reported by Colin Patrick McCabe and fixed by Colin Patrick McCabe <br>
+     <b>libwebhdfs compilation broken with gcc 4.6.2</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4477">HDFS-4477</a>.
+     Critical bug reported by Kihwal Lee and fixed by Daryn Sharp (security)<br>
+     <b>Secondary namenode may retain old tokens</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4471">HDFS-4471</a>.
+     Major bug reported by Andrew Wang and fixed by Andrew Wang (namenode)<br>
+     <b>Namenode WebUI file browsing does not work with wildcard addresses configured</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4470">HDFS-4470</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth <br>
+     <b>several HDFS tests attempt file operations on invalid HDFS paths when running on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4465">HDFS-4465</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Aaron T. Myers (datanode)<br>
+     <b>Optimize datanode ReplicasMap and ReplicaInfo</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4461">HDFS-4461</a>.
+     Minor improvement reported by Colin Patrick McCabe and fixed by Colin Patrick McCabe <br>
+     <b>DirectoryScanner: volume path prefix takes up memory for every block that is scanned </b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4434">HDFS-4434</a>.
+     Major sub-task reported by Brandon Li and fixed by Suresh Srinivas (namenode)<br>
+     <b>Provide a mapping from INodeId to INode</b><br>
+     <blockquote>This change adds support for referencing files and directories based on fileID/inodeID using a path /.reserved/.inodes/&lt;inodeid&gt;. With this change creating a file or directory /.reserved is not longer allowed. Before upgrading to a release with this change, files /.reserved needs to be renamed to another name.</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4382">HDFS-4382</a>.
+     Major bug reported by Ted Yu and fixed by Ted Yu <br>
+     <b>Fix typo MAX_NOT_CHANGED_INTERATIONS</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4374">HDFS-4374</a>.
+     Major sub-task reported by Chris Nauroth and fixed by Chris Nauroth (namenode)<br>
+     <b>Display NameNode startup progress in UI</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4373">HDFS-4373</a>.
+     Major sub-task reported by Chris Nauroth and fixed by Chris Nauroth (namenode)<br>
+     <b>Add HTTP API for querying NameNode startup progress</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4372">HDFS-4372</a>.
+     Major sub-task reported by Chris Nauroth and fixed by Chris Nauroth (namenode)<br>
+     <b>Track NameNode startup progress</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4346">HDFS-4346</a>.
+     Minor sub-task reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode)<br>
+     <b>Refactor INodeId and GenerationStamp</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4342">HDFS-4342</a>.
+     Major bug reported by Mark Yang and fixed by Arpit Agarwal (namenode)<br>
+     <b>Edits dir in dfs.namenode.edits.dir.required will be silently ignored if it is not in dfs.namenode.edits.dir</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4340">HDFS-4340</a>.
+     Major sub-task reported by Brandon Li and fixed by Brandon Li (hdfs-client , namenode)<br>
+     <b>Update addBlock() to inculde inode id as additional argument</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4339">HDFS-4339</a>.
+     Major sub-task reported by Brandon Li and fixed by Brandon Li (namenode)<br>
+     <b>Persist inode id in fsimage and editlog</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4334">HDFS-4334</a>.
+     Major sub-task reported by Brandon Li and fixed by Brandon Li (namenode)<br>
+     <b>Add a unique id to each INode</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4305">HDFS-4305</a>.
+     Minor bug reported by Todd Lipcon and fixed by Andrew Wang (namenode)<br>
+     <b>Add a configurable limit on number of blocks per file, and min block size</b><br>
+     <blockquote>This change introduces a maximum number of blocks per file, by default one million, and a minimum block size, by default 1MB. These can optionally be changed via the configuration settings "dfs.namenode.fs-limits.max-blocks-per-file" and "dfs.namenode.fs-limits.min-block-size", respectively.</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4304">HDFS-4304</a>.
+     Major improvement reported by Todd Lipcon and fixed by Colin Patrick McCabe (namenode)<br>
+     <b>Make FSEditLogOp.MAX_OP_SIZE configurable</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4300">HDFS-4300</a>.
+     Critical bug reported by Todd Lipcon and fixed by Andrew Wang <br>
+     <b>TransferFsImage.downloadEditsToStorage should use a tmp file for destination</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4298">HDFS-4298</a>.
+     Major bug reported by Todd Lipcon and fixed by Aaron T. Myers (namenode)<br>
+     <b>StorageRetentionManager spews warnings when used with QJM</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4296">HDFS-4296</a>.
+     Major bug reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Add layout version for HDFS-4256 for release 1.2.0</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4287">HDFS-4287</a>.
+     Major bug reported by Chris Nauroth and fixed by Chris Nauroth (webhdfs)<br>
+     <b>HTTPFS tests fail on Windows</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4261">HDFS-4261</a>.
+     Major bug reported by Tsz Wo (Nicholas), SZE and fixed by Junping Du (balancer)<br>
+     <b>TestBalancerWithNodeGroup times out</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4249">HDFS-4249</a>.
+     Major new feature reported by Suresh Srinivas and fixed by Chris Nauroth (namenode)<br>
+     <b>Add status NameNode startup to webUI </b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4246">HDFS-4246</a>.
+     Minor improvement reported by Harsh J and fixed by Harsh J (hdfs-client)<br>
+     <b>The exclude node list should be more forgiving, for each output stream</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4240">HDFS-4240</a>.
+     Major bug reported by Junping Du and fixed by Junping Du (namenode)<br>
+     <b>In nodegroup-aware case, make sure nodes are avoided to place replica if some replica are already under the same nodegroup</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4235">HDFS-4235</a>.
+     Minor bug reported by Colin Patrick McCabe and fixed by Colin Patrick McCabe <br>
+     <b>when outputting XML, OfflineEditsViewer can't handle some edits containing non-ASCII strings</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4234">HDFS-4234</a>.
+     Minor improvement reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (balancer)<br>
+     <b>Use the generic code for choosing datanode in Balancer</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4222">HDFS-4222</a>.
+     Minor bug reported by Xiaobo Peng and fixed by Xiaobo Peng (namenode)<br>
+     <b>NN is unresponsive and loses heartbeats of DNs when Hadoop is configured to use LDAP and LDAP has issues</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4215">HDFS-4215</a>.
+     Major improvement reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode)<br>
+     <b>Improvements on INode and image loading</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4209">HDFS-4209</a>.
+     Major bug reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode)<br>
+     <b>Clean up the addNode/addChild/addChildNoQuotaCheck methods in FSDirectory</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4206">HDFS-4206</a>.
+     Major improvement reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode)<br>
+     <b>Change the fields in INode and its subclasses to private</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4205">HDFS-4205</a>.
+     Major bug reported by Andy Isaacson and fixed by Jason Lowe (hdfs-client)<br>
+     <b>fsck fails with symlinks</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4152">HDFS-4152</a>.
+     Minor improvement reported by Tsz Wo (Nicholas), SZE and fixed by Jing Zhao (namenode)<br>
+     <b>Add a new class for the parameter in INode.collectSubtreeBlocksAndClear(..)</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4151">HDFS-4151</a>.
+     Minor improvement reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode)<br>
+     <b>Passing INodesInPath instead of INode[] in FSDirectory</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4129">HDFS-4129</a>.
+     Minor test reported by Tsz Wo (Nicholas), SZE and fixed by Tsz Wo (Nicholas), SZE (namenode)<br>
+     <b>Add utility methods to dump NameNode in memory tree for testing</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4128">HDFS-4128</a>.
+     Major bug reported by Todd Lipcon and fixed by Kihwal Lee (namenode)<br>
+     <b>2NN gets stuck in inconsistent state if edit log replay fails in the middle</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4124">HDFS-4124</a>.
+     Minor new feature reported by Jing Zhao and fixed by Jing Zhao <br>
+     <b>Refactor INodeDirectory#getExistingPathINodes() to enable returning more than INode array</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4053">HDFS-4053</a>.
+     Major improvement reported by Eli Collins and fixed by Eli Collins <br>
+     <b>Increase the default block size</b><br>
+     <blockquote>The default blocks size prior to this change was 64MB. This jira changes the default block size to 128MB. To go back to previous behavior, please configure the in hdfs-site.xml, the configuration parameter "dfs.blocksize" to 67108864.</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-4013">HDFS-4013</a>.
+     Trivial bug reported by Chao Shi and fixed by Chao Shi (hdfs-client)<br>
+     <b>TestHftpURLTimeouts throws NPE</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3940">HDFS-3940</a>.
+     Minor improvement reported by Eli Collins and fixed by Suresh Srinivas <br>
+     <b>Add Gset#clear method and clear the block map when namenode is shutdown</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3934">HDFS-3934</a>.
+     Minor bug reported by Andy Isaacson and fixed by Colin Patrick McCabe <br>
+     <b>duplicative dfs_hosts entries handled wrong</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3880">HDFS-3880</a>.
+     Minor improvement reported by Brandon Li and fixed by Brandon Li (datanode , ha , namenode , security)<br>
+     <b>Use Builder to get RPC server in HDFS</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3875">HDFS-3875</a>.
+     Critical bug reported by Todd Lipcon and fixed by Kihwal Lee (datanode , hdfs-client)<br>
+     <b>Issue handling checksum errors in write pipeline</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3817">HDFS-3817</a>.
+     Major improvement reported by Brandon Li and fixed by Brandon Li (namenode)<br>
+     <b>avoid printing stack information for SafeModeException</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3792">HDFS-3792</a>.
+     Trivial bug reported by Todd Lipcon and fixed by Todd Lipcon (build , namenode)<br>
+     <b>Fix two findbugs introduced by HDFS-3695</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3769">HDFS-3769</a>.
+     Critical sub-task reported by liaowenrui and fixed by  (ha)<br>
+     <b>standby namenode become active fails because starting log segment fail on shared storage</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3601">HDFS-3601</a>.
+     Major new feature reported by Junping Du and fixed by Junping Du (namenode)<br>
+     <b>Implementation of ReplicaPlacementPolicyNodeGroup to support 4-layer network topology</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3499">HDFS-3499</a>.
+     Major bug reported by Junping Du and fixed by Junping Du (datanode)<br>
+     <b>Make NetworkTopology support user specified topology class</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3498">HDFS-3498</a>.
+     Major improvement reported by Junping Du and fixed by Junping Du (namenode)<br>
+     <b>Make Replica Removal Policy pluggable and ReplicaPlacementPolicyDefault extensible for reusing code in subclass</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3495">HDFS-3495</a>.
+     Major new feature reported by Junping Du and fixed by Junping Du (balancer)<br>
+     <b>Update Balancer to support new NetworkTopology with NodeGroup</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3277">HDFS-3277</a>.
+     Major bug reported by Colin Patrick McCabe and fixed by Andrew Wang <br>
+     <b>fail over to loading a different FSImage if the first one we try to load is corrupt</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3180">HDFS-3180</a>.
+     Major bug reported by Daryn Sharp and fixed by Chris Nauroth (webhdfs)<br>
+     <b>Add socket timeouts to webhdfs</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3163">HDFS-3163</a>.
+     Trivial improvement reported by Brandon Li and fixed by Brandon Li (test)<br>
+     <b>TestHDFSCLI.testAll fails if the user name is not all lowercase</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-3009">HDFS-3009</a>.
+     Trivial bug reported by Hari Mankude and fixed by Hari Mankude (hdfs-client)<br>
+     <b>DFSClient islocaladdress() can use similar routine in netutils</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-2857">HDFS-2857</a>.
+     Major improvement reported by Suresh Srinivas and fixed by Suresh Srinivas (namenode)<br>
+     <b>Cleanup BlockInfo class</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-2576">HDFS-2576</a>.
+     Major new feature reported by Pritam Damania and fixed by Devaraj Das (hdfs-client , namenode)<br>
+     <b>Namenode should have a favored nodes hint to enable clients to have control over block placement.</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-2572">HDFS-2572</a>.
+     Trivial improvement reported by Harsh J and fixed by Harsh J (datanode)<br>
+     <b>Unnecessary double-check in DN#getHostName</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-2042">HDFS-2042</a>.
+     Minor improvement reported by Eli Collins and fixed by  (libhdfs)<br>
+     <b>Require c99 when building libhdfs</b><br>
+     <blockquote></blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-1804">HDFS-1804</a>.
+     Minor new feature reported by Harsh J and fixed by Aaron T. Myers (datanode)<br>
+     <b>Add a new block-volume device choosing policy that looks at free space</b><br>
+     <blockquote>There is now a new option to have the DN take into account available disk space on each volume when choosing where to place a replica when performing an HDFS write. This can be enabled by setting the config "dfs.datanode.fsdataset.volume.choosing.policy" to the value "org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy".</blockquote></li>
+<li> <a href="https://issues.apache.org/jira/browse/HDFS-347">HDFS-347</a>.
+     Major improvement reported by George Porter and fixed by Colin Patrick McCabe (datanode , hdfs-client , performance)<br>
+     <b>DFS read performance suboptimal when client co-located on nodes with data</b><br>
+     <blockquote></blockquote></li>
+</ul>
+</body></html>
