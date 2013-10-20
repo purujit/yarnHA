@@ -91,526 +91,540 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNodeRepo
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.YarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMDelegationTokenSecretManager;
 import org.apache.hadoop.yarn.server.resourcemanager.security.authorize.RMPolicyProvider;
+import org.apache.hadoop.yarn.server.resourcemanager.state.RMStateManager;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
-
 
 /**
  * The client interface to the Resource Manager. This module handles all the rpc
  * interfaces to the resource manager from the client.
  */
 public class ClientRMService extends AbstractService implements
-    ApplicationClientProtocol {
-  private static final ArrayList<ApplicationReport> EMPTY_APPS_REPORT = new ArrayList<ApplicationReport>();
+		ApplicationClientProtocol {
+	private static final ArrayList<ApplicationReport> EMPTY_APPS_REPORT = new ArrayList<ApplicationReport>();
 
-  private static final Log LOG = LogFactory.getLog(ClientRMService.class);
+	private static final Log LOG = LogFactory.getLog(ClientRMService.class);
 
-  final private AtomicInteger applicationCounter = new AtomicInteger(0);
-  final private YarnScheduler scheduler;
-  final private RMContext rmContext;
-  private final RMAppManager rmAppManager;
+	final private AtomicInteger applicationCounter = new AtomicInteger(0);
+	final private YarnScheduler scheduler;
+	final private RMContext rmContext;
+	private final RMAppManager rmAppManager;
 
-  private Server server;
-  protected RMDelegationTokenSecretManager rmDTSecretManager;
+	private Server server;
+	protected RMDelegationTokenSecretManager rmDTSecretManager;
 
-  private final RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
-  InetSocketAddress clientBindAddress;
+	protected RMStateManager rmStateManager;
 
-  private final ApplicationACLsManager applicationsACLsManager;
+	private final RecordFactory recordFactory = RecordFactoryProvider
+			.getRecordFactory(null);
+	InetSocketAddress clientBindAddress;
 
-  public ClientRMService(RMContext rmContext, YarnScheduler scheduler,
-      RMAppManager rmAppManager, ApplicationACLsManager applicationACLsManager,
-      RMDelegationTokenSecretManager rmDTSecretManager) {
-    super(ClientRMService.class.getName());
-    this.scheduler = scheduler;
-    this.rmContext = rmContext;
-    this.rmAppManager = rmAppManager;
-    this.applicationsACLsManager = applicationACLsManager;
-    this.rmDTSecretManager = rmDTSecretManager;
-  }
+	private final ApplicationACLsManager applicationsACLsManager;
 
-  @Override
-  protected void serviceInit(Configuration conf) throws Exception {
-    clientBindAddress = getBindAddress(conf);
-    super.serviceInit(conf);
-  }
+	public ClientRMService(RMContext rmContext, YarnScheduler scheduler,
+			RMAppManager rmAppManager,
+			ApplicationACLsManager applicationACLsManager,
+			RMDelegationTokenSecretManager rmDTSecretManager,
+			RMStateManager rmStateManager) {
+		super(ClientRMService.class.getName());
+		this.scheduler = scheduler;
+		this.rmContext = rmContext;
+		this.rmAppManager = rmAppManager;
+		this.applicationsACLsManager = applicationACLsManager;
+		this.rmDTSecretManager = rmDTSecretManager;
+		this.rmStateManager = rmStateManager;
+	}
 
-  @Override
-  protected void serviceStart() throws Exception {
-    Configuration conf = getConfig();
-    YarnRPC rpc = YarnRPC.create(conf);
-    this.server =   
-      rpc.getServer(ApplicationClientProtocol.class, this,
-            clientBindAddress,
-            conf, this.rmDTSecretManager,
-            conf.getInt(YarnConfiguration.RM_CLIENT_THREAD_COUNT, 
-                YarnConfiguration.DEFAULT_RM_CLIENT_THREAD_COUNT));
-    
-    // Enable service authorization?
-    if (conf.getBoolean(
-        CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHORIZATION, 
-        false)) {
-      refreshServiceAcls(conf, new RMPolicyProvider());
-    }
-    
-    this.server.start();
-    clientBindAddress = conf.updateConnectAddr(YarnConfiguration.RM_ADDRESS,
-                                               server.getListenerAddress());
-    // enable RM to short-circuit token operations directly to itself
-    RMDelegationTokenIdentifier.Renewer.setSecretManager(
-        rmDTSecretManager, clientBindAddress);
-    super.serviceStart();
-  }
+	@Override
+	protected void serviceInit(Configuration conf) throws Exception {
+		clientBindAddress = getBindAddress(conf);
+		super.serviceInit(conf);
+	}
 
-  @Override
-  protected void serviceStop() throws Exception {
-    if (this.server != null) {
-        this.server.stop();
-    }
-    super.serviceStop();
-  }
+	@Override
+	protected void serviceStart() throws Exception {
+		Configuration conf = getConfig();
+		YarnRPC rpc = YarnRPC.create(conf);
+		this.server = rpc.getServer(ApplicationClientProtocol.class, this,
+				clientBindAddress, conf, this.rmDTSecretManager, conf.getInt(
+						YarnConfiguration.RM_CLIENT_THREAD_COUNT,
+						YarnConfiguration.DEFAULT_RM_CLIENT_THREAD_COUNT));
 
-  InetSocketAddress getBindAddress(Configuration conf) {
-    return conf.getSocketAddr(YarnConfiguration.RM_ADDRESS,
-            YarnConfiguration.DEFAULT_RM_ADDRESS,
-            YarnConfiguration.DEFAULT_RM_PORT);
-  }
+		// Enable service authorization?
+		if (conf.getBoolean(
+				CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHORIZATION,
+				false)) {
+			refreshServiceAcls(conf, new RMPolicyProvider());
+		}
 
-  @Private
-  public InetSocketAddress getBindAddress() {
-    return clientBindAddress;
-  }
+		this.server.start();
+		clientBindAddress = conf.updateConnectAddr(
+				YarnConfiguration.RM_ADDRESS, server.getListenerAddress());
+		// enable RM to short-circuit token operations directly to itself
+		RMDelegationTokenIdentifier.Renewer.setSecretManager(rmDTSecretManager,
+				clientBindAddress);
+		super.serviceStart();
+	}
 
-  /**
-   * check if the calling user has the access to application information.
-   * @param callerUGI
-   * @param owner
-   * @param operationPerformed
-   * @param applicationId
-   * @return
-   */
-  private boolean checkAccess(UserGroupInformation callerUGI, String owner,
-      ApplicationAccessType operationPerformed, ApplicationId applicationId) {
-    return applicationsACLsManager.checkAccess(callerUGI, operationPerformed,
-        owner, applicationId);
-  }
+	@Override
+	protected void serviceStop() throws Exception {
+		if (this.server != null) {
+			this.server.stop();
+		}
+		super.serviceStop();
+	}
 
-  ApplicationId getNewApplicationId() {
-    ApplicationId applicationId = org.apache.hadoop.yarn.server.utils.BuilderUtils
-        .newApplicationId(recordFactory, ResourceManager.clusterTimeStamp,
-            applicationCounter.incrementAndGet());
-    LOG.info("Allocated new applicationId: " + applicationId.getId());
-    return applicationId;
-  }
+	InetSocketAddress getBindAddress(Configuration conf) {
+		return conf.getSocketAddr(YarnConfiguration.RM_ADDRESS,
+				YarnConfiguration.DEFAULT_RM_ADDRESS,
+				YarnConfiguration.DEFAULT_RM_PORT);
+	}
 
-  @Override
-  public GetNewApplicationResponse getNewApplication(
-      GetNewApplicationRequest request) throws YarnException {
-    GetNewApplicationResponse response = recordFactory
-        .newRecordInstance(GetNewApplicationResponse.class);
-    response.setApplicationId(getNewApplicationId());
-    // Pick up min/max resource from scheduler...
-    response.setMaximumResourceCapability(scheduler
-        .getMaximumResourceCapability());       
-    
-    return response;
-  }
-  
-  /**
-   * It gives response which includes application report if the application
-   * present otherwise throws ApplicationNotFoundException.
-   */
-  @Override
-  public GetApplicationReportResponse getApplicationReport(
-      GetApplicationReportRequest request) throws YarnException {
-    ApplicationId applicationId = request.getApplicationId();
+	@Private
+	public InetSocketAddress getBindAddress() {
+		return clientBindAddress;
+	}
 
-    UserGroupInformation callerUGI;
-    try {
-      callerUGI = UserGroupInformation.getCurrentUser();
-    } catch (IOException ie) {
-      LOG.info("Error getting UGI ", ie);
-      throw RPCUtil.getRemoteException(ie);
-    }
+	/**
+	 * check if the calling user has the access to application information.
+	 * 
+	 * @param callerUGI
+	 * @param owner
+	 * @param operationPerformed
+	 * @param applicationId
+	 * @return
+	 */
+	private boolean checkAccess(UserGroupInformation callerUGI, String owner,
+			ApplicationAccessType operationPerformed,
+			ApplicationId applicationId) {
+		return applicationsACLsManager.checkAccess(callerUGI,
+				operationPerformed, owner, applicationId);
+	}
 
-    RMApp application = this.rmContext.getRMApps().get(applicationId);
-    if (application == null) {
-      // If the RM doesn't have the application, throw
-      // ApplicationNotFoundException and let client to handle.
-      throw new ApplicationNotFoundException("Application with id '"
-          + applicationId + "' doesn't exist in RM.");
-    }
+	ApplicationId getNewApplicationId() {
+		ApplicationId applicationId = org.apache.hadoop.yarn.server.utils.BuilderUtils
+				.newApplicationId(recordFactory,
+						ResourceManager.clusterTimeStamp,
+						applicationCounter.incrementAndGet());
+		LOG.info("Allocated new applicationId: " + applicationId.getId());
+		return applicationId;
+	}
 
-    boolean allowAccess = checkAccess(callerUGI, application.getUser(),
-        ApplicationAccessType.VIEW_APP, applicationId);
-    ApplicationReport report =
-        application.createAndGetApplicationReport(allowAccess);
+	@Override
+	public GetNewApplicationResponse getNewApplication(
+			GetNewApplicationRequest request) throws YarnException {
+		GetNewApplicationResponse response = recordFactory
+				.newRecordInstance(GetNewApplicationResponse.class);
+		ApplicationId appId = getNewApplicationId();
+		this.rmStateManager.registerApplicationId(appId);
+		response.setApplicationId(appId);
+		// Pick up min/max resource from scheduler...
+		response.setMaximumResourceCapability(scheduler
+				.getMaximumResourceCapability());
 
-    GetApplicationReportResponse response = recordFactory
-        .newRecordInstance(GetApplicationReportResponse.class);
-    response.setApplicationReport(report);
-    return response;
-  }
+		return response;
+	}
 
-  @Override
-  public SubmitApplicationResponse submitApplication(
-      SubmitApplicationRequest request) throws YarnException {
-    ApplicationSubmissionContext submissionContext = request
-        .getApplicationSubmissionContext();
-    ApplicationId applicationId = submissionContext.getApplicationId();
+	/**
+	 * It gives response which includes application report if the application
+	 * present otherwise throws ApplicationNotFoundException.
+	 */
+	@Override
+	public GetApplicationReportResponse getApplicationReport(
+			GetApplicationReportRequest request) throws YarnException {
+		ApplicationId applicationId = request.getApplicationId();
 
-    // ApplicationSubmissionContext needs to be validated for safety - only
-    // those fields that are independent of the RM's configuration will be
-    // checked here, those that are dependent on RM configuration are validated
-    // in RMAppManager.
+		UserGroupInformation callerUGI;
+		try {
+			callerUGI = UserGroupInformation.getCurrentUser();
+		} catch (IOException ie) {
+			LOG.info("Error getting UGI ", ie);
+			throw RPCUtil.getRemoteException(ie);
+		}
 
-    String user = null;
-    try {
-      // Safety
-      user = UserGroupInformation.getCurrentUser().getShortUserName();
-    } catch (IOException ie) {
-      LOG.warn("Unable to get the current user.", ie);
-      RMAuditLogger.logFailure(user, AuditConstants.SUBMIT_APP_REQUEST,
-          ie.getMessage(), "ClientRMService",
-          "Exception in submitting application", applicationId);
-      throw RPCUtil.getRemoteException(ie);
-    }
+		RMApp application = this.rmContext.getRMApps().get(applicationId);
+		if (application == null) {
+			// If the RM doesn't have the application, throw
+			// ApplicationNotFoundException and let client to handle.
+			throw new ApplicationNotFoundException("Application with id '"
+					+ applicationId + "' doesn't exist in RM.");
+		}
 
-    // Though duplication will checked again when app is put into rmContext,
-    // but it is good to fail the invalid submission as early as possible.
-    if (rmContext.getRMApps().get(applicationId) != null) {
-      String message = "Application with id " + applicationId +
-          " is already present! Cannot add a duplicate!";
-      LOG.warn(message);
-      RMAuditLogger.logFailure(user, AuditConstants.SUBMIT_APP_REQUEST,
-          message, "ClientRMService", "Exception in submitting application",
-          applicationId);
-      throw RPCUtil.getRemoteException(message);
-    }
+		boolean allowAccess = checkAccess(callerUGI, application.getUser(),
+				ApplicationAccessType.VIEW_APP, applicationId);
+		ApplicationReport report = application
+				.createAndGetApplicationReport(allowAccess);
 
-    if (submissionContext.getQueue() == null) {
-      submissionContext.setQueue(YarnConfiguration.DEFAULT_QUEUE_NAME);
-    }
-    if (submissionContext.getApplicationName() == null) {
-      submissionContext.setApplicationName(
-          YarnConfiguration.DEFAULT_APPLICATION_NAME);
-    }
-    if (submissionContext.getApplicationType() == null) {
-      submissionContext
-        .setApplicationType(YarnConfiguration.DEFAULT_APPLICATION_TYPE);
-    } else {
-      if (submissionContext.getApplicationType().length() > YarnConfiguration.APPLICATION_TYPE_LENGTH) {
-        submissionContext.setApplicationType(submissionContext
-          .getApplicationType().substring(0,
-            YarnConfiguration.APPLICATION_TYPE_LENGTH));
-      }
-    }
+		GetApplicationReportResponse response = recordFactory
+				.newRecordInstance(GetApplicationReportResponse.class);
+		response.setApplicationReport(report);
+		return response;
+	}
 
-    try {
-      // call RMAppManager to submit application directly
-      rmAppManager.submitApplication(submissionContext,
-          System.currentTimeMillis(), false, user);
+	@Override
+	public SubmitApplicationResponse submitApplication(
+			SubmitApplicationRequest request) throws YarnException {
+		ApplicationSubmissionContext submissionContext = request
+				.getApplicationSubmissionContext();
+		ApplicationId applicationId = submissionContext.getApplicationId();
 
-      LOG.info("Application with id " + applicationId.getId() + 
-          " submitted by user " + user);
-      RMAuditLogger.logSuccess(user, AuditConstants.SUBMIT_APP_REQUEST,
-          "ClientRMService", applicationId);
-    } catch (YarnException e) {
-      LOG.info("Exception in submitting application with id " +
-          applicationId.getId(), e);
-      RMAuditLogger.logFailure(user, AuditConstants.SUBMIT_APP_REQUEST,
-          e.getMessage(), "ClientRMService",
-          "Exception in submitting application", applicationId);
-      throw e;
-    }
+		// ApplicationSubmissionContext needs to be validated for safety - only
+		// those fields that are independent of the RM's configuration will be
+		// checked here, those that are dependent on RM configuration are
+		// validated
+		// in RMAppManager.
 
-    SubmitApplicationResponse response = recordFactory
-        .newRecordInstance(SubmitApplicationResponse.class);
-    return response;
-  }
+		String user = null;
+		try {
+			// Safety
+			user = UserGroupInformation.getCurrentUser().getShortUserName();
+		} catch (IOException ie) {
+			LOG.warn("Unable to get the current user.", ie);
+			RMAuditLogger.logFailure(user, AuditConstants.SUBMIT_APP_REQUEST,
+					ie.getMessage(), "ClientRMService",
+					"Exception in submitting application", applicationId);
+			throw RPCUtil.getRemoteException(ie);
+		}
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public KillApplicationResponse forceKillApplication(
-      KillApplicationRequest request) throws YarnException {
+		// Though duplication will checked again when app is put into rmContext,
+		// but it is good to fail the invalid submission as early as possible.
+		if (rmContext.getRMApps().get(applicationId) != null) {
+			String message = "Application with id " + applicationId
+					+ " is already present! Cannot add a duplicate!";
+			LOG.warn(message);
+			RMAuditLogger.logFailure(user, AuditConstants.SUBMIT_APP_REQUEST,
+					message, "ClientRMService",
+					"Exception in submitting application", applicationId);
+			throw RPCUtil.getRemoteException(message);
+		}
 
-    ApplicationId applicationId = request.getApplicationId();
+		if (submissionContext.getQueue() == null) {
+			submissionContext.setQueue(YarnConfiguration.DEFAULT_QUEUE_NAME);
+		}
+		if (submissionContext.getApplicationName() == null) {
+			submissionContext
+					.setApplicationName(YarnConfiguration.DEFAULT_APPLICATION_NAME);
+		}
+		if (submissionContext.getApplicationType() == null) {
+			submissionContext
+					.setApplicationType(YarnConfiguration.DEFAULT_APPLICATION_TYPE);
+		} else {
+			if (submissionContext.getApplicationType().length() > YarnConfiguration.APPLICATION_TYPE_LENGTH) {
+				submissionContext.setApplicationType(submissionContext
+						.getApplicationType().substring(0,
+								YarnConfiguration.APPLICATION_TYPE_LENGTH));
+			}
+		}
 
-    UserGroupInformation callerUGI;
-    try {
-      callerUGI = UserGroupInformation.getCurrentUser();
-    } catch (IOException ie) {
-      LOG.info("Error getting UGI ", ie);
-      RMAuditLogger.logFailure("UNKNOWN", AuditConstants.KILL_APP_REQUEST,
-          "UNKNOWN", "ClientRMService" , "Error getting UGI",
-          applicationId);
-      throw RPCUtil.getRemoteException(ie);
-    }
+		try {
+			// call RMAppManager to submit application directly
+			rmAppManager.submitApplication(submissionContext,
+					System.currentTimeMillis(), false, user);
 
-    RMApp application = this.rmContext.getRMApps().get(applicationId);
-    if (application == null) {
-      RMAuditLogger.logFailure(callerUGI.getUserName(),
-          AuditConstants.KILL_APP_REQUEST, "UNKNOWN", "ClientRMService",
-          "Trying to kill an absent application", applicationId);
-      throw RPCUtil
-          .getRemoteException("Trying to kill an absent application "
-              + applicationId);
-    }
+			LOG.info("Application with id " + applicationId.getId()
+					+ " submitted by user " + user);
+			RMAuditLogger.logSuccess(user, AuditConstants.SUBMIT_APP_REQUEST,
+					"ClientRMService", applicationId);
+		} catch (YarnException e) {
+			LOG.info("Exception in submitting application with id "
+					+ applicationId.getId(), e);
+			RMAuditLogger.logFailure(user, AuditConstants.SUBMIT_APP_REQUEST,
+					e.getMessage(), "ClientRMService",
+					"Exception in submitting application", applicationId);
+			throw e;
+		}
 
-    if (!checkAccess(callerUGI, application.getUser(),
-        ApplicationAccessType.MODIFY_APP, applicationId)) {
-      RMAuditLogger.logFailure(callerUGI.getShortUserName(),
-          AuditConstants.KILL_APP_REQUEST,
-          "User doesn't have permissions to "
-              + ApplicationAccessType.MODIFY_APP.toString(), "ClientRMService",
-          AuditConstants.UNAUTHORIZED_USER, applicationId);
-      throw RPCUtil.getRemoteException(new AccessControlException("User "
-          + callerUGI.getShortUserName() + " cannot perform operation "
-          + ApplicationAccessType.MODIFY_APP.name() + " on " + applicationId));
-    }
+		SubmitApplicationResponse response = recordFactory
+				.newRecordInstance(SubmitApplicationResponse.class);
+		return response;
+	}
 
-    this.rmContext.getDispatcher().getEventHandler().handle(
-        new RMAppEvent(applicationId, RMAppEventType.KILL));
+	@SuppressWarnings("unchecked")
+	@Override
+	public KillApplicationResponse forceKillApplication(
+			KillApplicationRequest request) throws YarnException {
 
-    RMAuditLogger.logSuccess(callerUGI.getShortUserName(), 
-        AuditConstants.KILL_APP_REQUEST, "ClientRMService" , applicationId);
-    KillApplicationResponse response = recordFactory
-        .newRecordInstance(KillApplicationResponse.class);
-    return response;
-  }
+		ApplicationId applicationId = request.getApplicationId();
 
-  @Override
-  public GetClusterMetricsResponse getClusterMetrics(
-      GetClusterMetricsRequest request) throws YarnException {
-    GetClusterMetricsResponse response = recordFactory
-        .newRecordInstance(GetClusterMetricsResponse.class);
-    YarnClusterMetrics ymetrics = recordFactory
-        .newRecordInstance(YarnClusterMetrics.class);
-    ymetrics.setNumNodeManagers(this.rmContext.getRMNodes().size());
-    response.setClusterMetrics(ymetrics);
-    return response;
-  }
-  
-  @Override
-  public GetApplicationsResponse getApplications(
-      GetApplicationsRequest request) throws YarnException {
+		UserGroupInformation callerUGI;
+		try {
+			callerUGI = UserGroupInformation.getCurrentUser();
+		} catch (IOException ie) {
+			LOG.info("Error getting UGI ", ie);
+			RMAuditLogger.logFailure("UNKNOWN",
+					AuditConstants.KILL_APP_REQUEST, "UNKNOWN",
+					"ClientRMService", "Error getting UGI", applicationId);
+			throw RPCUtil.getRemoteException(ie);
+		}
 
-    UserGroupInformation callerUGI;
-    try {
-      callerUGI = UserGroupInformation.getCurrentUser();
-    } catch (IOException ie) {
-      LOG.info("Error getting UGI ", ie);
-      throw RPCUtil.getRemoteException(ie);
-    }
+		RMApp application = this.rmContext.getRMApps().get(applicationId);
+		if (application == null) {
+			RMAuditLogger.logFailure(callerUGI.getUserName(),
+					AuditConstants.KILL_APP_REQUEST, "UNKNOWN",
+					"ClientRMService", "Trying to kill an absent application",
+					applicationId);
+			throw RPCUtil
+					.getRemoteException("Trying to kill an absent application "
+							+ applicationId);
+		}
 
-    Set<String> applicationTypes = request.getApplicationTypes();
-    boolean bypassFilter = applicationTypes.isEmpty();
-    List<ApplicationReport> reports = new ArrayList<ApplicationReport>();
-    for (RMApp application : this.rmContext.getRMApps().values()) {
-      if (!(bypassFilter || applicationTypes.contains(application
-          .getApplicationType()))) {
-        continue;
-      }
-      boolean allowAccess = checkAccess(callerUGI, application.getUser(),
-          ApplicationAccessType.VIEW_APP, application.getApplicationId());
-      reports.add(application.createAndGetApplicationReport(allowAccess));
-    }
+		if (!checkAccess(callerUGI, application.getUser(),
+				ApplicationAccessType.MODIFY_APP, applicationId)) {
+			RMAuditLogger.logFailure(callerUGI.getShortUserName(),
+					AuditConstants.KILL_APP_REQUEST,
+					"User doesn't have permissions to "
+							+ ApplicationAccessType.MODIFY_APP.toString(),
+					"ClientRMService", AuditConstants.UNAUTHORIZED_USER,
+					applicationId);
+			throw RPCUtil.getRemoteException(new AccessControlException("User "
+					+ callerUGI.getShortUserName()
+					+ " cannot perform operation "
+					+ ApplicationAccessType.MODIFY_APP.name() + " on "
+					+ applicationId));
+		}
 
-    GetApplicationsResponse response =
-      recordFactory.newRecordInstance(GetApplicationsResponse.class);
-    response.setApplicationList(reports);
-    return response;
-  }
+		this.rmContext.getDispatcher().getEventHandler()
+				.handle(new RMAppEvent(applicationId, RMAppEventType.KILL));
 
-  @Override
-  public GetClusterNodesResponse getClusterNodes(GetClusterNodesRequest request)
-      throws YarnException {
-    GetClusterNodesResponse response = 
-      recordFactory.newRecordInstance(GetClusterNodesResponse.class);
-    EnumSet<NodeState> nodeStates = request.getNodeStates();
-    if (nodeStates == null || nodeStates.isEmpty()) {
-      nodeStates = EnumSet.allOf(NodeState.class);
-    }
-    Collection<RMNode> nodes = RMServerUtils.queryRMNodes(rmContext,
-        nodeStates);
-    
-    List<NodeReport> nodeReports = new ArrayList<NodeReport>(nodes.size());
-    for (RMNode nodeInfo : nodes) {
-      nodeReports.add(createNodeReports(nodeInfo));
-    }
-    response.setNodeReports(nodeReports);
-    return response;
-  }
+		RMAuditLogger.logSuccess(callerUGI.getShortUserName(),
+				AuditConstants.KILL_APP_REQUEST, "ClientRMService",
+				applicationId);
+		KillApplicationResponse response = recordFactory
+				.newRecordInstance(KillApplicationResponse.class);
+		return response;
+	}
 
-  @Override
-  public GetQueueInfoResponse getQueueInfo(GetQueueInfoRequest request)
-      throws YarnException {
-    GetQueueInfoResponse response =
-      recordFactory.newRecordInstance(GetQueueInfoResponse.class);
-    try {
-      QueueInfo queueInfo = 
-        scheduler.getQueueInfo(request.getQueueName(),  
-            request.getIncludeChildQueues(), 
-            request.getRecursive());
-      List<ApplicationReport> appReports = EMPTY_APPS_REPORT;
-      if (request.getIncludeApplications()) {
-        Collection<RMApp> apps = this.rmContext.getRMApps().values();
-        appReports = new ArrayList<ApplicationReport>(
-            apps.size());
-        for (RMApp app : apps) {
-          if (app.getQueue().equals(queueInfo.getQueueName())) {
-            appReports.add(app.createAndGetApplicationReport(true));
-          }
-        }
-      }
-      queueInfo.setApplications(appReports);
-      response.setQueueInfo(queueInfo);
-    } catch (IOException ioe) {
-      LOG.info("Failed to getQueueInfo for " + request.getQueueName(), ioe);
-    }
-    
-    return response;
-  }
+	@Override
+	public GetClusterMetricsResponse getClusterMetrics(
+			GetClusterMetricsRequest request) throws YarnException {
+		GetClusterMetricsResponse response = recordFactory
+				.newRecordInstance(GetClusterMetricsResponse.class);
+		YarnClusterMetrics ymetrics = recordFactory
+				.newRecordInstance(YarnClusterMetrics.class);
+		ymetrics.setNumNodeManagers(this.rmContext.getRMNodes().size());
+		response.setClusterMetrics(ymetrics);
+		return response;
+	}
 
-  private NodeReport createNodeReports(RMNode rmNode) {    
-    SchedulerNodeReport schedulerNodeReport = 
-        scheduler.getNodeReport(rmNode.getNodeID());
-    Resource used = BuilderUtils.newResource(0, 0);
-    int numContainers = 0;
-    if (schedulerNodeReport != null) {
-      used = schedulerNodeReport.getUsedResource();
-      numContainers = schedulerNodeReport.getNumContainers();
-    } 
-    
-    NodeReport report = BuilderUtils.newNodeReport(rmNode.getNodeID(),
-        rmNode.getState(),
-        rmNode.getHttpAddress(), rmNode.getRackName(), used,
-        rmNode.getTotalCapability(), numContainers,
-        rmNode.getHealthReport(),
-        rmNode.getLastHealthReportTime());
+	@Override
+	public GetApplicationsResponse getApplications(
+			GetApplicationsRequest request) throws YarnException {
 
-    return report;
-  }
+		UserGroupInformation callerUGI;
+		try {
+			callerUGI = UserGroupInformation.getCurrentUser();
+		} catch (IOException ie) {
+			LOG.info("Error getting UGI ", ie);
+			throw RPCUtil.getRemoteException(ie);
+		}
 
-  @Override
-  public GetQueueUserAclsInfoResponse getQueueUserAcls(
-      GetQueueUserAclsInfoRequest request) throws YarnException {
-    GetQueueUserAclsInfoResponse response = 
-      recordFactory.newRecordInstance(GetQueueUserAclsInfoResponse.class);
-    response.setUserAclsInfoList(scheduler.getQueueUserAclInfo());
-    return response;
-  }
+		Set<String> applicationTypes = request.getApplicationTypes();
+		boolean bypassFilter = applicationTypes.isEmpty();
+		List<ApplicationReport> reports = new ArrayList<ApplicationReport>();
+		for (RMApp application : this.rmContext.getRMApps().values()) {
+			if (!(bypassFilter || applicationTypes.contains(application
+					.getApplicationType()))) {
+				continue;
+			}
+			boolean allowAccess = checkAccess(callerUGI, application.getUser(),
+					ApplicationAccessType.VIEW_APP,
+					application.getApplicationId());
+			reports.add(application.createAndGetApplicationReport(allowAccess));
+		}
 
+		GetApplicationsResponse response = recordFactory
+				.newRecordInstance(GetApplicationsResponse.class);
+		response.setApplicationList(reports);
+		return response;
+	}
 
-  @Override
-  public GetDelegationTokenResponse getDelegationToken(
-      GetDelegationTokenRequest request) throws YarnException {
-    try {
+	@Override
+	public GetClusterNodesResponse getClusterNodes(
+			GetClusterNodesRequest request) throws YarnException {
+		GetClusterNodesResponse response = recordFactory
+				.newRecordInstance(GetClusterNodesResponse.class);
+		EnumSet<NodeState> nodeStates = request.getNodeStates();
+		if (nodeStates == null || nodeStates.isEmpty()) {
+			nodeStates = EnumSet.allOf(NodeState.class);
+		}
+		Collection<RMNode> nodes = RMServerUtils.queryRMNodes(rmContext,
+				nodeStates);
 
-      // Verify that the connection is kerberos authenticated
-      if (!isAllowedDelegationTokenOp()) {
-        throw new IOException(
-          "Delegation Token can be issued only with kerberos authentication");
-      }
+		List<NodeReport> nodeReports = new ArrayList<NodeReport>(nodes.size());
+		for (RMNode nodeInfo : nodes) {
+			nodeReports.add(createNodeReports(nodeInfo));
+		}
+		response.setNodeReports(nodeReports);
+		return response;
+	}
 
-      GetDelegationTokenResponse response =
-          recordFactory.newRecordInstance(GetDelegationTokenResponse.class);
-      UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-      Text owner = new Text(ugi.getUserName());
-      Text realUser = null;
-      if (ugi.getRealUser() != null) {
-        realUser = new Text(ugi.getRealUser().getUserName());
-      }
-      RMDelegationTokenIdentifier tokenIdentifier =
-          new RMDelegationTokenIdentifier(owner, new Text(request.getRenewer()), 
-              realUser);
-      Token<RMDelegationTokenIdentifier> realRMDTtoken =
-          new Token<RMDelegationTokenIdentifier>(tokenIdentifier,
-              this.rmDTSecretManager);
-      response.setRMDelegationToken(
-          BuilderUtils.newDelegationToken(
-              realRMDTtoken.getIdentifier(),
-              realRMDTtoken.getKind().toString(),
-              realRMDTtoken.getPassword(),
-              realRMDTtoken.getService().toString()
-              ));
-      return response;
-    } catch(IOException io) {
-      throw RPCUtil.getRemoteException(io);
-    }
-  }
+	@Override
+	public GetQueueInfoResponse getQueueInfo(GetQueueInfoRequest request)
+			throws YarnException {
+		GetQueueInfoResponse response = recordFactory
+				.newRecordInstance(GetQueueInfoResponse.class);
+		try {
+			QueueInfo queueInfo = scheduler.getQueueInfo(
+					request.getQueueName(), request.getIncludeChildQueues(),
+					request.getRecursive());
+			List<ApplicationReport> appReports = EMPTY_APPS_REPORT;
+			if (request.getIncludeApplications()) {
+				Collection<RMApp> apps = this.rmContext.getRMApps().values();
+				appReports = new ArrayList<ApplicationReport>(apps.size());
+				for (RMApp app : apps) {
+					if (app.getQueue().equals(queueInfo.getQueueName())) {
+						appReports.add(app.createAndGetApplicationReport(true));
+					}
+				}
+			}
+			queueInfo.setApplications(appReports);
+			response.setQueueInfo(queueInfo);
+		} catch (IOException ioe) {
+			LOG.info("Failed to getQueueInfo for " + request.getQueueName(),
+					ioe);
+		}
 
-  @Override
-  public RenewDelegationTokenResponse renewDelegationToken(
-      RenewDelegationTokenRequest request) throws YarnException {
-    try {
-      if (!isAllowedDelegationTokenOp()) {
-        throw new IOException(
-            "Delegation Token can be renewed only with kerberos authentication");
-      }
-      
-      org.apache.hadoop.yarn.api.records.Token protoToken = request.getDelegationToken();
-      Token<RMDelegationTokenIdentifier> token = new Token<RMDelegationTokenIdentifier>(
-          protoToken.getIdentifier().array(), protoToken.getPassword().array(),
-          new Text(protoToken.getKind()), new Text(protoToken.getService()));
+		return response;
+	}
 
-      String user = getRenewerForToken(token);
-      long nextExpTime = rmDTSecretManager.renewToken(token, user);
-      RenewDelegationTokenResponse renewResponse = Records
-          .newRecord(RenewDelegationTokenResponse.class);
-      renewResponse.setNextExpirationTime(nextExpTime);
-      return renewResponse;
-    } catch (IOException e) {
-      throw RPCUtil.getRemoteException(e);
-    }
-  }
+	private NodeReport createNodeReports(RMNode rmNode) {
+		SchedulerNodeReport schedulerNodeReport = scheduler
+				.getNodeReport(rmNode.getNodeID());
+		Resource used = BuilderUtils.newResource(0, 0);
+		int numContainers = 0;
+		if (schedulerNodeReport != null) {
+			used = schedulerNodeReport.getUsedResource();
+			numContainers = schedulerNodeReport.getNumContainers();
+		}
 
-  @Override
-  public CancelDelegationTokenResponse cancelDelegationToken(
-      CancelDelegationTokenRequest request) throws YarnException {
-    try {
-      if (!isAllowedDelegationTokenOp()) {
-        throw new IOException(
-            "Delegation Token can be cancelled only with kerberos authentication");
-      }
-      org.apache.hadoop.yarn.api.records.Token protoToken = request.getDelegationToken();
-      Token<RMDelegationTokenIdentifier> token = new Token<RMDelegationTokenIdentifier>(
-          protoToken.getIdentifier().array(), protoToken.getPassword().array(),
-          new Text(protoToken.getKind()), new Text(protoToken.getService()));
+		NodeReport report = BuilderUtils.newNodeReport(rmNode.getNodeID(),
+				rmNode.getState(), rmNode.getHttpAddress(),
+				rmNode.getRackName(), used, rmNode.getTotalCapability(),
+				numContainers, rmNode.getHealthReport(),
+				rmNode.getLastHealthReportTime());
 
-      String user = getRenewerForToken(token);
-      rmDTSecretManager.cancelToken(token, user);
-      return Records.newRecord(CancelDelegationTokenResponse.class);
-    } catch (IOException e) {
-      throw RPCUtil.getRemoteException(e);
-    }
-  }
+		return report;
+	}
 
-  private String getRenewerForToken(Token<RMDelegationTokenIdentifier> token)
-      throws IOException {
-    UserGroupInformation user = UserGroupInformation.getCurrentUser();
-    UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
-    // we can always renew our own tokens
-    return loginUser.getUserName().equals(user.getUserName())
-        ? token.decodeIdentifier().getRenewer().toString()
-        : user.getShortUserName();
-  }
+	@Override
+	public GetQueueUserAclsInfoResponse getQueueUserAcls(
+			GetQueueUserAclsInfoRequest request) throws YarnException {
+		GetQueueUserAclsInfoResponse response = recordFactory
+				.newRecordInstance(GetQueueUserAclsInfoResponse.class);
+		response.setUserAclsInfoList(scheduler.getQueueUserAclInfo());
+		return response;
+	}
 
-  void refreshServiceAcls(Configuration configuration, 
-      PolicyProvider policyProvider) {
-    this.server.refreshServiceAcl(configuration, policyProvider);
-  }
+	@Override
+	public GetDelegationTokenResponse getDelegationToken(
+			GetDelegationTokenRequest request) throws YarnException {
+		try {
 
-  private boolean isAllowedDelegationTokenOp() throws IOException {
-    if (UserGroupInformation.isSecurityEnabled()) {
-      return EnumSet.of(AuthenticationMethod.KERBEROS,
-                        AuthenticationMethod.KERBEROS_SSL,
-                        AuthenticationMethod.CERTIFICATE)
-          .contains(UserGroupInformation.getCurrentUser()
-                  .getRealAuthenticationMethod());
-    } else {
-      return true;
-    }
-  }
+			// Verify that the connection is kerberos authenticated
+			if (!isAllowedDelegationTokenOp()) {
+				throw new IOException(
+						"Delegation Token can be issued only with kerberos authentication");
+			}
+
+			GetDelegationTokenResponse response = recordFactory
+					.newRecordInstance(GetDelegationTokenResponse.class);
+			UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+			Text owner = new Text(ugi.getUserName());
+			Text realUser = null;
+			if (ugi.getRealUser() != null) {
+				realUser = new Text(ugi.getRealUser().getUserName());
+			}
+			RMDelegationTokenIdentifier tokenIdentifier = new RMDelegationTokenIdentifier(
+					owner, new Text(request.getRenewer()), realUser);
+			Token<RMDelegationTokenIdentifier> realRMDTtoken = new Token<RMDelegationTokenIdentifier>(
+					tokenIdentifier, this.rmDTSecretManager);
+			response.setRMDelegationToken(BuilderUtils.newDelegationToken(
+					realRMDTtoken.getIdentifier(), realRMDTtoken.getKind()
+							.toString(), realRMDTtoken.getPassword(),
+					realRMDTtoken.getService().toString()));
+			return response;
+		} catch (IOException io) {
+			throw RPCUtil.getRemoteException(io);
+		}
+	}
+
+	@Override
+	public RenewDelegationTokenResponse renewDelegationToken(
+			RenewDelegationTokenRequest request) throws YarnException {
+		try {
+			if (!isAllowedDelegationTokenOp()) {
+				throw new IOException(
+						"Delegation Token can be renewed only with kerberos authentication");
+			}
+
+			org.apache.hadoop.yarn.api.records.Token protoToken = request
+					.getDelegationToken();
+			Token<RMDelegationTokenIdentifier> token = new Token<RMDelegationTokenIdentifier>(
+					protoToken.getIdentifier().array(), protoToken
+							.getPassword().array(), new Text(
+							protoToken.getKind()), new Text(
+							protoToken.getService()));
+
+			String user = getRenewerForToken(token);
+			long nextExpTime = rmDTSecretManager.renewToken(token, user);
+			RenewDelegationTokenResponse renewResponse = Records
+					.newRecord(RenewDelegationTokenResponse.class);
+			renewResponse.setNextExpirationTime(nextExpTime);
+			return renewResponse;
+		} catch (IOException e) {
+			throw RPCUtil.getRemoteException(e);
+		}
+	}
+
+	@Override
+	public CancelDelegationTokenResponse cancelDelegationToken(
+			CancelDelegationTokenRequest request) throws YarnException {
+		try {
+			if (!isAllowedDelegationTokenOp()) {
+				throw new IOException(
+						"Delegation Token can be cancelled only with kerberos authentication");
+			}
+			org.apache.hadoop.yarn.api.records.Token protoToken = request
+					.getDelegationToken();
+			Token<RMDelegationTokenIdentifier> token = new Token<RMDelegationTokenIdentifier>(
+					protoToken.getIdentifier().array(), protoToken
+							.getPassword().array(), new Text(
+							protoToken.getKind()), new Text(
+							protoToken.getService()));
+
+			String user = getRenewerForToken(token);
+			rmDTSecretManager.cancelToken(token, user);
+			return Records.newRecord(CancelDelegationTokenResponse.class);
+		} catch (IOException e) {
+			throw RPCUtil.getRemoteException(e);
+		}
+	}
+
+	private String getRenewerForToken(Token<RMDelegationTokenIdentifier> token)
+			throws IOException {
+		UserGroupInformation user = UserGroupInformation.getCurrentUser();
+		UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
+		// we can always renew our own tokens
+		return loginUser.getUserName().equals(user.getUserName()) ? token
+				.decodeIdentifier().getRenewer().toString() : user
+				.getShortUserName();
+	}
+
+	void refreshServiceAcls(Configuration configuration,
+			PolicyProvider policyProvider) {
+		this.server.refreshServiceAcl(configuration, policyProvider);
+	}
+
+	private boolean isAllowedDelegationTokenOp() throws IOException {
+		if (UserGroupInformation.isSecurityEnabled()) {
+			return EnumSet.of(AuthenticationMethod.KERBEROS,
+					AuthenticationMethod.KERBEROS_SSL,
+					AuthenticationMethod.CERTIFICATE).contains(
+					UserGroupInformation.getCurrentUser()
+							.getRealAuthenticationMethod());
+		} else {
+			return true;
+		}
+	}
 }
