@@ -79,6 +79,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.security.DelegationTokenRen
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMDelegationTokenSecretManager;
 import org.apache.hadoop.yarn.server.resourcemanager.security.NMTokenSecretManagerInRM;
+import org.apache.hadoop.yarn.server.resourcemanager.state.RMStateManager;
+import org.apache.hadoop.yarn.server.resourcemanager.state.RMSingleNodeStateManager;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.RMWebApp;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 import org.apache.hadoop.yarn.server.webproxy.AppReportFetcher;
@@ -129,6 +131,7 @@ public class ResourceManager extends CompositeService implements Recoverable {
   protected RMAppManager rmAppManager;
   protected ApplicationACLsManager applicationACLsManager;
   protected RMDelegationTokenSecretManager rmDTSecretManager;
+  protected RMStateManager rmStateManager;
   private WebApp webApp;
   protected RMContext rmContext;
   protected ResourceTrackerService resourceTracker;
@@ -256,6 +259,8 @@ public class ResourceManager extends CompositeService implements Recoverable {
     this.rmDispatcher.register(RMAppManagerEventType.class,
         this.rmAppManager);
     this.rmDTSecretManager = createRMDelegationTokenSecretManager(this.rmContext);
+    // TODO(purujit): Use a factory method to create the right type of state manager.
+    this.rmStateManager = new RMSingleNodeStateManager();
     clientRM = createClientRMService();
     addService(clientRM);
     
@@ -710,7 +715,7 @@ public class ResourceManager extends CompositeService implements Recoverable {
 
   protected ClientRMService createClientRMService() {
     return new ClientRMService(this.rmContext, scheduler, this.rmAppManager,
-        this.applicationACLsManager, this.rmDTSecretManager);
+        this.applicationACLsManager, this.rmDTSecretManager, this.rmStateManager);
   }
 
   protected ApplicationMasterService createApplicationMasterService() {

@@ -91,6 +91,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNodeRepo
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.YarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMDelegationTokenSecretManager;
 import org.apache.hadoop.yarn.server.resourcemanager.security.authorize.RMPolicyProvider;
+import org.apache.hadoop.yarn.server.resourcemanager.state.RMStateException;
 import org.apache.hadoop.yarn.server.resourcemanager.state.RMStateManager;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
@@ -217,7 +218,11 @@ public class ClientRMService extends AbstractService implements
 		GetNewApplicationResponse response = recordFactory
 				.newRecordInstance(GetNewApplicationResponse.class);
 		ApplicationId appId = getNewApplicationId();
-		this.rmStateManager.registerApplicationId(appId);
+		try {
+			this.rmStateManager.registerApplicationId(appId);
+		} catch (RMStateException e) {
+			throw e.ToYarnException();
+		}
 		response.setApplicationId(appId);
 		// Pick up min/max resource from scheduler...
 		response.setMaximumResourceCapability(scheduler

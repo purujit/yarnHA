@@ -6,11 +6,11 @@ import org.apache.hadoop.yarn.api.records.ApplicationId;
  * A StateManager implementation for single node RM.
  * 
  */
-public class SingleNodeStateManager implements RMStateManager {
-	public SingleNodeStateManager() {
+public class RMSingleNodeStateManager implements RMStateManager {
+	public RMSingleNodeStateManager() {
 	}
 
 	public void registerApplicationId(ApplicationId appId)
-			throws StateException {
+			throws RMStateException {
 	}
 }
