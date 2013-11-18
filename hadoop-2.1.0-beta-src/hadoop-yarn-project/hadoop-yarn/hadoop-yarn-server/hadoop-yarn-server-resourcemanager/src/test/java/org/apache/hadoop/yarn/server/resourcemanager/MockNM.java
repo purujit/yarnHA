@@ -30,6 +30,7 @@ import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.server.api.ResourceTracker;
 import org.apache.hadoop.yarn.server.api.protocolrecords.NodeHeartbeatRequest;
 import org.apache.hadoop.yarn.server.api.protocolrecords.NodeHeartbeatResponse;
 import org.apache.hadoop.yarn.server.api.protocolrecords.RegisterNodeManagerRequest;
@@ -46,12 +47,12 @@ public class MockNM {
   private NodeId nodeId;
   private final int memory;
   private final int vCores = 1;
-  private ResourceTrackerService resourceTracker;
+  private ResourceTracker resourceTracker;
   private final int httpPort = 2;
   private MasterKey currentContainerTokenMasterKey;
   private MasterKey currentNMTokenMasterKey;
 
-  public MockNM(String nodeIdStr, int memory, ResourceTrackerService resourceTracker) {
+  public MockNM(String nodeIdStr, int memory, ResourceTracker resourceTracker) {
     this.memory = memory;
     this.resourceTracker = resourceTracker;
     String[] splits = nodeIdStr.split(":");
@@ -66,7 +67,7 @@ public class MockNM {
     return httpPort;
   }
   
-  void setResourceTrackerService(ResourceTrackerService resourceTracker) {
+  void setResourceTrackerService(ResourceTracker resourceTracker) {
     this.resourceTracker = resourceTracker;
   }
 

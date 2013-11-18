@@ -200,5 +200,6 @@
     <module>hadoop-yarn-applications</module>
     <module>hadoop-yarn-site</module>
     <module>hadoop-yarn-client</module>
+    <module>hadoop-yarn-fakes</module>
   </modules>
 </project>
