@@ -52,6 +52,7 @@ public class MockNM {
   private MasterKey currentContainerTokenMasterKey;
   private MasterKey currentNMTokenMasterKey;
 
+  /* nodeIdStr - in host:port form */
   public MockNM(String nodeIdStr, int memory, ResourceTracker resourceTracker) {
     this.memory = memory;
     this.resourceTracker = resourceTracker;
@@ -99,6 +100,7 @@ public class MockNM {
         isHealthy, ++responseId);
   }
 
+  // Used when completing an application.
   public NodeHeartbeatResponse nodeHeartbeat(ApplicationAttemptId attemptId,
       int containerId, ContainerState containerState) throws Exception {
     HashMap<ApplicationId, List<ContainerStatus>> nodeUpdate =
