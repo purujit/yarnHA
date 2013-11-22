@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hadoop.util.Time;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerState;
@@ -132,7 +133,7 @@ public class MockNM {
     NodeHealthStatus healthStatus = Records.newRecord(NodeHealthStatus.class);
     healthStatus.setHealthReport("");
     healthStatus.setIsNodeHealthy(isHealthy);
-    healthStatus.setLastHealthReportTime(1);
+    healthStatus.setLastHealthReportTime(Time.now());
     status.setNodeHealthStatus(healthStatus);
     req.setNodeStatus(status);
     req.setLastKnownContainerTokenMasterKey(this.currentContainerTokenMasterKey);

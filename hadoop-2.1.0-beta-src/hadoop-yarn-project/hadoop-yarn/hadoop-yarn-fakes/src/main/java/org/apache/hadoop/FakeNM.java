@@ -33,14 +33,18 @@ public class FakeNM {
 
             resourceTracker = ServerRMProxy.createRMProxy(conf,
                     ResourceTracker.class);
-
-            MockNM nm = new MockNM("localhost:12000", 2 << 10, resourceTracker);
-            // Register with RM.
-            System.out.println(nm.registerNode().toString());
-            // Send periodic heartbeats.
-            Timer timer = new Timer();
-            timer.schedule(new FakeNMHeartBeatTask(nm), 0, conf.getLong(
-                    YarnConfiguration.RM_NM_HEARTBEAT_INTERVAL_MS, 60000));
+            System.out.println(conf.getLong(
+                        YarnConfiguration.RM_NM_HEARTBEAT_INTERVAL_MS, 60000));
+            for (int i = 0; i < 10; ++i) {
+                MockNM nm = new MockNM("localhost:" + (12000 + i), 2 << 10,
+                        resourceTracker);
+                // Register with RM.
+                System.out.println(nm.registerNode().toString());
+                // Send periodic heartbeats.
+                Timer timer = new Timer();
+                timer.schedule(new FakeNMHeartBeatTask(nm), 0, conf.getLong(
+                        YarnConfiguration.RM_NM_HEARTBEAT_INTERVAL_MS, 60000));
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return;
