@@ -37,8 +37,9 @@ public class FakeYarn {
             resourceTracker = ServerRMProxy.createRMProxy(conf,
                     ResourceTracker.class);
             Timer timer = new Timer();
+            // This vector will keep the NMs and the cms alive.
             Vector<FakeNMContainerManager> cms = new Vector<FakeNMContainerManager>();
-            // Start a bunch of NMs.
+            // Start a bunch of NMs along with corresponding ContainerManagers.
             for (int i = 0; i < 10; ++i) {
                 MockNM nm = new MockNM("localhost:" + (12000 + i), 2 << 10,
                         resourceTracker);
@@ -46,6 +47,7 @@ public class FakeYarn {
                 // Send periodic heart beats.
                 timer.schedule(new FakeNMHeartBeatTask(nm), 0, conf.getLong(
                         YarnConfiguration.RM_NM_HEARTBEAT_INTERVAL_MS, 60000));
+                // Create and start the container manager.
                 cms.add(new FakeNMContainerManager(new InetSocketAddress(
                         "localhost", 12000 + i), nm));
                 cms.lastElement().init(conf);
@@ -53,7 +55,7 @@ public class FakeYarn {
             }
             // Submit a bunch of applications.
             FakeClient client = new FakeClient(conf);
-            client.submitApplication();
+            client.submitApplication("Application:1");
         } catch (Exception e) {
             e.printStackTrace();
             return;
