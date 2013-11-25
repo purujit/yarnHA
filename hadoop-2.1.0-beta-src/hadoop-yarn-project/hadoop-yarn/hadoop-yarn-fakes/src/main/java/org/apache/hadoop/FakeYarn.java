@@ -8,6 +8,7 @@ import java.util.Timer;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.PeriodicStatsAccumulator;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -33,20 +34,14 @@ public class FakeYarn {
 
             conf.addResource(yarnSitePath);
             ResourceTracker resourceTracker;
-
             resourceTracker = ServerRMProxy.createRMProxy(conf,
                     ResourceTracker.class);
-            Timer timer = new Timer();
             // This vector will keep the NMs and the cms alive.
             Vector<FakeNMContainerManager> cms = new Vector<FakeNMContainerManager>();
             // Start a bunch of NMs along with corresponding ContainerManagers.
             for (int i = 0; i < 10; ++i) {
                 MockNM nm = new MockNM("localhost:" + (12000 + i), 2 << 10,
                         resourceTracker);
-                nm.registerNode();
-                // Send periodic heart beats.
-                timer.schedule(new FakeNMHeartBeatTask(nm), 0, conf.getLong(
-                        YarnConfiguration.RM_NM_HEARTBEAT_INTERVAL_MS, 60000));
                 // Create and start the container manager.
                 cms.add(new FakeNMContainerManager(new InetSocketAddress(
                         "localhost", 12000 + i), nm));

@@ -124,7 +124,7 @@ public class ApplicationMasterService extends AbstractService implements
     serverConf = new Configuration(conf);
     serverConf.set(
         CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHENTICATION,
-        SaslRpcServer.AuthMethod.TOKEN.toString());
+        SaslRpcServer.AuthMethod.SIMPLE.toString());
     this.server =
       rpc.getServer(ApplicationMasterProtocol.class, this, masterServiceAddress,
           serverConf, this.rmContext.getAMRMTokenSecretManager(),
