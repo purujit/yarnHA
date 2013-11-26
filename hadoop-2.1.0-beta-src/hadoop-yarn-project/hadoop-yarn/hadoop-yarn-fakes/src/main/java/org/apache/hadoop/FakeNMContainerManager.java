@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
+import org.apache.hadoop.io.DataInputByteBuffer;
 import org.apache.hadoop.ipc.Server;
-import org.apache.hadoop.net.NetUtils;
-import org.apache.hadoop.security.SaslRpcServer;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.service.AbstractService;
@@ -54,6 +54,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.MockAM;
 import org.apache.hadoop.yarn.server.resourcemanager.MockNM;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
+import org.mortbay.jetty.security.Credential;
 
 import com.sun.research.ws.wadl.Application;
 
@@ -114,44 +115,39 @@ public class FakeNMContainerManager extends AbstractService implements
             final ApplicationId applicationId = containerId
                     .getApplicationAttemptId().getApplicationId();
             succeededContainers.add(containerId);
-            LOG.info("Starting container for app id" + applicationId);
             ContainerStatus status = this.newContainerStatus(containerId,
                     ContainerState.RUNNING, "");
             ArrayList<ContainerStatus> appContainers = new ArrayList<ContainerStatus>();
             appContainers.add(status);
             containers.put(applicationId, appContainers);
-            // In about a minute mark this container as running.
+
+            Credentials creds = new Credentials();
+            ByteBuffer tokens = request.getContainerLaunchContext().getTokens();
+            if (tokens != null) {
+                DataInputByteBuffer buf = new DataInputByteBuffer();
+                tokens.rewind();
+                buf.reset(tokens);
+                try {
+                    creds.readTokenStorageStream(buf);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            final FakeAM am = new FakeAM(this, containerId, containerId.getApplicationAttemptId(),
+                    creds, serviceAddress.getHostName(), getConfig());
             this.timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
+                    LOG.info("Starting: " + containerId.getApplicationAttemptId());
                     try {
-                        AMRMTokenIdentifier tokenId = new AMRMTokenIdentifier(
-                                containerTokenIdentifier.getContainerID()
-                                        .getApplicationAttemptId());
-                        ApplicationMasterProtocol rmAppMasterService = tokenId
-                                .getUser()
-                                .doAs(new PrivilegedExceptionAction<ApplicationMasterProtocol>() {
-                                    @Override
-                                    public ApplicationMasterProtocol run()
-                                            throws Exception {
-                                        return ClientRMProxy
-                                                .createRMProxy(
-                                                        new YarnConfiguration(
-                                                                getConfig()),
-                                                        ApplicationMasterProtocol.class);
-                                    }
-                                });
-                        FakeAM am = new FakeAM(containerTokenIdentifier,
-                                serviceAddress.getHostName(),
-                                rmAppMasterService);
-                        am.registerAppAttempt();
+                        am.runApplication();
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
-                    } catch (Exception e) {
+                    } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
-                    }
+                    }                    
                 }
             }, 10000);
         }
@@ -180,5 +176,13 @@ public class FakeNMContainerManager extends AbstractService implements
         Map<ContainerId, SerializedException> failedRequests = new HashMap<ContainerId, SerializedException>();
         return GetContainerStatusesResponse.newInstance(statuses,
                 failedRequests);
+    }
+    
+    public void MarkAMFinished(ApplicationId appId, ContainerId containerId) {
+        ContainerStatus status = this.newContainerStatus(containerId,
+                ContainerState.COMPLETE, "");
+        ArrayList<ContainerStatus> appContainers = new ArrayList<ContainerStatus>();
+        appContainers.add(status);
+        containers.put(appId, appContainers);
     }
 }
