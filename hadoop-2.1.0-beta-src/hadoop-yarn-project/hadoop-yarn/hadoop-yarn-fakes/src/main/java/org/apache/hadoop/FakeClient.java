@@ -44,7 +44,7 @@ public class FakeClient {
         appContext.setApplicationName(appName);
         appContext.setApplicationType("fake");
         Resource capability = Records.newRecord(Resource.class);
-        capability.setMemory(1 << 10);
+        capability.setMemory(ParametersForFakeYarn.NODE_MEMORY_GB << 10);
         appContext.setResource(capability);
 
         ContainerLaunchContext amContainer = Records

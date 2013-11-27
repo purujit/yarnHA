@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
@@ -12,6 +13,7 @@ import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.PeriodicStatsAccumulator;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.server.api.ResourceTracker;
 import org.apache.hadoop.yarn.server.api.ServerRMProxy;
 import org.apache.hadoop.yarn.server.resourcemanager.MockNM;
@@ -31,16 +33,19 @@ public class FakeYarn {
                                     YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB));
             Path yarnSitePath = new Path(
                     "/usr/local/hadoop/etc/hadoop/yarn-site.xml");
-
             conf.addResource(yarnSitePath);
+
             ResourceTracker resourceTracker;
             resourceTracker = ServerRMProxy.createRMProxy(conf,
                     ResourceTracker.class);
+
             // This vector will keep the NMs and the cms alive.
             Vector<FakeNMContainerManager> cms = new Vector<FakeNMContainerManager>();
             // Start a bunch of NMs along with corresponding ContainerManagers.
-            for (int i = 0; i < 10; ++i) {
-                MockNM nm = new MockNM("localhost:" + (12000 + i), 2 << 10,
+            for (int i = 0; i < ParametersForFakeYarn.NUMBER_OF_NODES; ++i) {
+                MockNM nm = new MockNM("localhost:"
+                        + (ParametersForFakeYarn.NM_PORT_BASE + i),
+                        ParametersForFakeYarn.NODE_MEMORY_GB << 10,
                         resourceTracker);
                 // Create and start the container manager.
                 cms.add(new FakeNMContainerManager(new InetSocketAddress(
@@ -48,14 +53,38 @@ public class FakeYarn {
                 cms.lastElement().init(conf);
                 cms.lastElement().start();
             }
-            // Submit a bunch of applications.
-            FakeClient client = new FakeClient(conf);
-            client.submitApplication("Application:1");
+
+            // Submit a bunch of applications to hit average utilization.
+            final int numConcurrentApps = (int) Math
+                    .floor(ParametersForFakeYarn.TARGET_UTILIZATION
+                            * ParametersForFakeYarn.NUMBER_OF_NODES);
+            Timer timer = new Timer();
+            for (int i = 0; i < numConcurrentApps; ++i) {
+                final FakeClient client = new FakeClient(conf);
+                timer.schedule(
+                        new TimerTask() {
+                            int appId = 0;
+
+                            @Override
+                            public void run() {
+                                try {
+                                    client.submitApplication("Application:"
+                                            + client.hashCode() + ":" + ++appId);
+                                } catch (IOException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                } catch (YarnException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        0,
+                        ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS * 1000);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
-        // Also, with a specified random distribution fail.
-        // We also have to bring up a fake container manager for each NM.
     }
 }

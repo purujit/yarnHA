@@ -49,8 +49,9 @@ public class FakeAM {
     private final FakeNMContainerManager containerManager;
     private final ContainerId containerId;
 
-    public FakeAM(FakeNMContainerManager containerManager, ContainerId containerId, ApplicationAttemptId appAttemptId, Credentials creds,
-            String hostName, Configuration conf) {
+    public FakeAM(FakeNMContainerManager containerManager,
+            ContainerId containerId, ApplicationAttemptId appAttemptId,
+            Credentials creds, String hostName, Configuration conf) {
         super();
         this.appAttemptId = appAttemptId;
         this.conf = conf;
@@ -90,7 +91,7 @@ public class FakeAM {
         });
 
         // Assume, app runs for 3 minutes.
-        final long lifetime = 180000;
+        final long lifetime = ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS * 1000;
         // Set up heart beats to start after 10 seconds and send 1 heart-beat
         // every minute.
         final long startTime = Time.now();
@@ -118,7 +119,8 @@ public class FakeAM {
                         // send termination.
                         final FinishApplicationMasterRequest finishRequest = Records
                                 .newRecord(FinishApplicationMasterRequest.class);
-                        finishRequest.setFinalApplicationStatus(FinalApplicationStatus.SUCCEEDED);
+                        finishRequest
+                                .setFinalApplicationStatus(FinalApplicationStatus.SUCCEEDED);
                         ugi.doAs(new PrivilegedExceptionAction<FinishApplicationMasterResponse>() {
                             @Override
                             public FinishApplicationMasterResponse run()
@@ -127,7 +129,8 @@ public class FakeAM {
                                         .finishApplicationMaster(finishRequest);
                             }
                         });
-                        containerManager.MarkAMFinished(appAttemptId.getApplicationId(), containerId);
+                        containerManager.MarkAMFinished(
+                                appAttemptId.getApplicationId(), containerId);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
