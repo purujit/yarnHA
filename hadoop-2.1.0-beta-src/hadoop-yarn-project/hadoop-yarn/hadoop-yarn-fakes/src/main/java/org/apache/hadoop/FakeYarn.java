@@ -80,7 +80,8 @@ public class FakeYarn {
                             }
                         },
                         0,
-                        ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS * 1000);
+                        (ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS
+                                + ParametersForFakeYarn.SCHEDULING_DELAY_SECONDS + ParametersForFakeYarn.NM_HEARTBEAT_INTERVAL_SECONDS) * 1000);
             }
         } catch (Exception e) {
             e.printStackTrace();
