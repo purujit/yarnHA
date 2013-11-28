@@ -219,6 +219,8 @@ public class RMContainerImpl implements RMContainer {
       if (oldState != getState()) {
         LOG.info(event.getContainerId() + " Container Transitioned from "
             + oldState + " to " + getState());
+        LOG.info("claudia: " + event.getContainerId() + " Container Transitioned from "
+                + oldState + " to " + getState() + " because of " + event.getContainerId());
       }
     }
     

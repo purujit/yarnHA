@@ -18,6 +18,9 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmnode;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -74,7 +77,7 @@ import com.google.common.annotations.VisibleForTesting;
 public class RMNodeImpl implements RMNode, EventHandler<RMNodeEvent> {
 
   private static final Log LOG = LogFactory.getLog(RMNodeImpl.class);
-
+  private static BufferedWriter transitionLogger = new BufferedWriter(new FileWriter(new File("RMtransitions.log"), true));
   private static final RecordFactory recordFactory = RecordFactoryProvider
       .getRecordFactory(null);
 
@@ -364,6 +367,8 @@ public class RMNodeImpl implements RMNode, EventHandler<RMNodeEvent> {
       if (oldState != getState()) {
         LOG.info(nodeId + " Node Transitioned from " + oldState + " to "
                  + getState());
+        LOG.info("claudia: " + " nodeId " + nodeId + " Node Transitioned from " + oldState + " to "
+        		+ getState() + " due to " + event.getType());
       }
     }
     
