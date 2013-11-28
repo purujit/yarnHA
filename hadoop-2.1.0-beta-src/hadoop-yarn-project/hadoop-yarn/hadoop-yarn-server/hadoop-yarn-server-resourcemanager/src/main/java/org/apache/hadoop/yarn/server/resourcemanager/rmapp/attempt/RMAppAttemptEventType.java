@@ -49,5 +49,4 @@ public enum RMAppAttemptEventType {
   
   // Source: RMAttemptImpl.recover
   RECOVER
-
 }
