@@ -86,14 +86,6 @@ public class ExtractStates {
 
 	}
 
-	public BufferedReader getBr() {
-		return br;
-	}
-
-	public void setBr(BufferedReader br) {
-		this.br = br;
-	}
-
 	public static void main(String[] args) {
 
 		ExtractStates extractStates = new ExtractStates(args[0]);
