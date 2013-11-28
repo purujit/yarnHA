@@ -83,7 +83,6 @@ public class ExtractStates {
 		if (!applicationList.contains(applicationId)) {
 			applicationList.add(applicationId);
 		}
-
 	}
 
 	public static void main(String[] args) {
