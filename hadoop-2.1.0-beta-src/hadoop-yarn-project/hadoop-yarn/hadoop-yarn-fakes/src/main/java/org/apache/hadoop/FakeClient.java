@@ -35,9 +35,6 @@ public class FakeClient {
                 .newRecord(GetNewApplicationRequest.class);
         GetNewApplicationResponse response = applicationsManager
                 .getNewApplication(request);
-        LOG.info("Got new application id: "
-                + response.getApplicationId().toString());
-
         ApplicationSubmissionContext appContext = Records
                 .newRecord(ApplicationSubmissionContext.class);
         appContext.setApplicationId(response.getApplicationId());

@@ -3,7 +3,6 @@ package org.apache.hadoop;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,15 +17,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputByteBuffer;
 import org.apache.hadoop.ipc.Server;
 import org.apache.hadoop.security.Credentials;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.token.Token;
-import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.service.AbstractService;
-import org.apache.hadoop.yarn.api.ApplicationMasterProtocol;
 import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusesRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusesResponse;
-import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainersRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainersResponse;
@@ -35,28 +29,16 @@ import org.apache.hadoop.yarn.api.protocolrecords.StopContainersResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerExitStatus;
 import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
-import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.SerializedException;
-import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
-import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
-import org.apache.hadoop.yarn.server.api.ServerRMProxy;
-import org.apache.hadoop.yarn.server.nodemanager.NodeManager;
-import org.apache.hadoop.yarn.server.nodemanager.security.authorize.NMPolicyProvider;
-import org.apache.hadoop.yarn.server.resourcemanager.MockAM;
 import org.apache.hadoop.yarn.server.resourcemanager.MockNM;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.apache.hadoop.yarn.util.Records;
-import org.mortbay.jetty.security.Credential;
-
-import com.sun.research.ws.wadl.Application;
 
 public class FakeNMContainerManager extends AbstractService implements
         ContainerManagementProtocol {
@@ -133,12 +115,14 @@ public class FakeNMContainerManager extends AbstractService implements
                     e.printStackTrace();
                 }
             }
-            final FakeAM am = new FakeAM(this, containerId, containerId.getApplicationAttemptId(),
-                    creds, serviceAddress.getHostName(), getConfig());
+            final FakeAM am = new FakeAM(this, containerId,
+                    containerId.getApplicationAttemptId(), creds,
+                    serviceAddress.getHostName(), getConfig());
             this.timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    LOG.info("Starting: " + containerId.getApplicationAttemptId());
+                    LOG.info("Starting: "
+                            + containerId.getApplicationAttemptId());
                     try {
                         am.runApplication();
                     } catch (IOException e) {
@@ -147,9 +131,9 @@ public class FakeNMContainerManager extends AbstractService implements
                     } catch (InterruptedException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
-                    }                    
+                    }
                 }
-            }, 10000);
+            }, ParametersForFakeYarn.APPLICATION_START_DELAY_SECONDS * 1000);
         }
         Map<String, ByteBuffer> servicesMetaData = new HashMap<String, ByteBuffer>();
         return StartContainersResponse.newInstance(servicesMetaData,
@@ -159,9 +143,37 @@ public class FakeNMContainerManager extends AbstractService implements
     @Override
     public StopContainersResponse stopContainers(StopContainersRequest request)
             throws YarnException, IOException {
-        System.out.println(request.toString());
-        // TODO Auto-generated method stub
-        return null;
+        LOG.info("Handling stop container request: " + request.toString());
+        
+        List<ContainerId> succeededRequests = new ArrayList<ContainerId>();
+        Map<ContainerId, SerializedException> failedRequests = new HashMap<ContainerId, SerializedException>();
+        for (ContainerId containerId : request.getContainerIds()) {
+            if (!containers.containsKey(containerId.getApplicationAttemptId().getApplicationId())) {
+                LOG.error("Unknown container.");
+                failedRequests.put(containerId, SerializedException
+                        .newInstance(new Exception("Container not found")));
+            } else {
+                List<ContainerStatus> statuses = containers.get(containerId
+                        .getApplicationAttemptId().getApplicationId());
+                if (statuses.size() != 1
+                        || statuses.get(0).getContainerId().compareTo(containerId) != 0
+                        || statuses.get(0).getState() != ContainerState.COMPLETE) {
+                    LOG.error("Weird container. Num containers: " + statuses.size() + " ContainerId:" + containerId);
+                    if (statuses.size() >= 1) {
+                        LOG.error("ContainerId:" + statuses.get(0).getContainerId() + " state:" + statuses.get(0).getState());
+                    }
+                    failedRequests.put(containerId, SerializedException
+                            .newInstance(new Exception("Container not found")));
+
+                } else {
+                    succeededRequests.add(containerId);
+                    containers.remove(containerId.getApplicationAttemptId()
+                            .getApplicationId());
+                }
+            }
+        }
+        return StopContainersResponse.newInstance(succeededRequests,
+                failedRequests);
     }
 
     @Override
@@ -177,7 +189,7 @@ public class FakeNMContainerManager extends AbstractService implements
         return GetContainerStatusesResponse.newInstance(statuses,
                 failedRequests);
     }
-    
+
     public void MarkAMFinished(ApplicationId appId, ContainerId containerId) {
         ContainerStatus status = this.newContainerStatus(containerId,
                 ContainerState.COMPLETE, "");

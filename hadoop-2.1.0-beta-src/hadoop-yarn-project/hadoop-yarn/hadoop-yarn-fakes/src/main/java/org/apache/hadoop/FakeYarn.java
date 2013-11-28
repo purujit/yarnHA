@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -58,30 +59,31 @@ public class FakeYarn {
             final int numConcurrentApps = (int) Math
                     .floor(ParametersForFakeYarn.TARGET_UTILIZATION
                             * ParametersForFakeYarn.NUMBER_OF_NODES);
-            Timer timer = new Timer();
+            int avgSubmissionPeriodSec = (ParametersForFakeYarn.AM_HEARTBEAT_INTERVAL_SECONDS/2
+                    + ParametersForFakeYarn.APPLICATION_START_DELAY_SECONDS
+                    + ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS
+                    + ParametersForFakeYarn.SCHEDULING_DELAY_SECONDS + ParametersForFakeYarn.NM_HEARTBEAT_INTERVAL_SECONDS);
+            Random rnd = new Random();
             for (int i = 0; i < numConcurrentApps; ++i) {
                 final FakeClient client = new FakeClient(conf);
-                timer.schedule(
-                        new TimerTask() {
-                            int appId = 0;
+                Runnable submissionTask = new Runnable() {
+                    int appId = 0;
 
-                            @Override
-                            public void run() {
-                                try {
-                                    client.submitApplication("Application:"
-                                            + client.hashCode() + ":" + ++appId);
-                                } catch (IOException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                } catch (YarnException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                }
-                            }
-                        },
-                        0,
-                        (ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS
-                                + ParametersForFakeYarn.SCHEDULING_DELAY_SECONDS + ParametersForFakeYarn.NM_HEARTBEAT_INTERVAL_SECONDS) * 1000);
+                    @Override
+                    public void run() {
+                        try {
+                            client.submitApplication("Application:"
+                                    + client.hashCode() + ":" + ++appId);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (YarnException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                RandomIntervalTimerTask rTask = new RandomIntervalTimerTask(
+                        submissionTask, rnd, avgSubmissionPeriodSec);
+                rTask.run();
             }
         } catch (Exception e) {
             e.printStackTrace();

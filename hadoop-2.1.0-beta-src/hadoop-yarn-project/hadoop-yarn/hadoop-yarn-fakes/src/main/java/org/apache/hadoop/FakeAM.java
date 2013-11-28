@@ -7,6 +7,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -89,11 +90,10 @@ public class FakeAM {
                 return rmAppMasterService.registerApplicationMaster(req);
             }
         });
-
+        Random rnd = new Random();
         // Assume, app runs for 3 minutes.
-        final long lifetime = ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS * 1000;
-        // Set up heart beats to start after 10 seconds and send 1 heart-beat
-        // every minute.
+        final long lifetimeAvg = ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS * 1000;
+        final long lifetime = (long) Math.max(30, Math.ceil(rnd.nextGaussian() * lifetimeAvg/5.0 + lifetimeAvg));
         final long startTime = Time.now();
         this.timer.schedule(new TimerTask() {
             @Override
@@ -136,6 +136,6 @@ public class FakeAM {
                     e.printStackTrace();
                 }
             }
-        }, 10000, 60000);
+        }, 10000, ParametersForFakeYarn.AM_HEARTBEAT_INTERVAL_SECONDS * 1000);
     }
 }
