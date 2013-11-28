@@ -18,6 +18,10 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmcontainer;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -45,7 +49,8 @@ import org.apache.hadoop.yarn.state.StateMachineFactory;
 public class RMContainerImpl implements RMContainer {
 
   private static final Log LOG = LogFactory.getLog(RMContainerImpl.class);
-
+  private static File transitionLogFile = new File("logs/RMtransitions.log");
+  private static BufferedWriter transitionLogger;
   private static final StateMachineFactory<RMContainerImpl, RMContainerState, 
                                            RMContainerEventType, RMContainerEvent> 
    stateMachineFactory = new StateMachineFactory<RMContainerImpl, 
@@ -155,6 +160,21 @@ public class RMContainerImpl implements RMContainer {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     this.readLock = lock.readLock();
     this.writeLock = lock.writeLock();
+    
+    try {
+        
+    	if(!transitionLogFile.exists())
+    	{
+    		transitionLogFile.createNewFile();
+    	}
+    
+    	transitionLogger = new BufferedWriter(new FileWriter(transitionLogFile, true));
+    
+    }
+    catch(IOException e) {
+    	LOG.error("Unable to start transitionLogger: " + e.getMessage());
+    }
+    
   }
 
   @Override
@@ -221,6 +241,16 @@ public class RMContainerImpl implements RMContainer {
             + oldState + " to " + getState());
         LOG.info("claudia: " + event.getContainerId() + " Container Transitioned from "
                 + oldState + " to " + getState() + " because of " + event.getContainerId());
+      
+        try {
+        	transitionLogger.append("claudia: " + event.getContainerId() + " Container Transitioned from "
+                    + oldState + " to " + getState() + " because of " + event.getContainerId() + "\n");
+        	transitionLogger.flush();
+        }
+        catch(IOException e)
+        {
+        	LOG.error("Unable to append to file: " + e.getMessage());
+        }
       }
     }
     

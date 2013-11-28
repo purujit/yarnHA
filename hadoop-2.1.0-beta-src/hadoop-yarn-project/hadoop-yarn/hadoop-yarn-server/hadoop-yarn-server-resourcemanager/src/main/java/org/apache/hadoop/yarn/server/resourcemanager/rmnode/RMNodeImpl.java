@@ -21,6 +21,7 @@ package org.apache.hadoop.yarn.server.resourcemanager.rmnode;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -77,7 +78,8 @@ import com.google.common.annotations.VisibleForTesting;
 public class RMNodeImpl implements RMNode, EventHandler<RMNodeEvent> {
 
   private static final Log LOG = LogFactory.getLog(RMNodeImpl.class);
-  private static BufferedWriter transitionLogger = new BufferedWriter(new FileWriter(new File("RMtransitions.log"), true));
+  private static File transitionLogFile = new File("logs/RMtransitions.log");
+  private static BufferedWriter transitionLogger;
   private static final RecordFactory recordFactory = RecordFactoryProvider
       .getRecordFactory(null);
 
@@ -196,6 +198,21 @@ public class RMNodeImpl implements RMNode, EventHandler<RMNodeEvent> {
     this.stateMachine = stateMachineFactory.make(this);
     
     this.nodeUpdateQueue = new ConcurrentLinkedQueue<UpdatedContainerInfo>();  
+    
+    try {
+    
+    	if(!transitionLogFile.exists())
+    	{
+    		transitionLogFile.createNewFile();
+    	}
+    
+    	transitionLogger = new BufferedWriter(new FileWriter(transitionLogFile, true));
+    
+    }
+    catch(IOException e) {
+    	LOG.error("Unable to start transitionLogger: " + e.getMessage());
+    }
+    
   }
 
   @Override
@@ -369,6 +386,15 @@ public class RMNodeImpl implements RMNode, EventHandler<RMNodeEvent> {
                  + getState());
         LOG.info("claudia: " + " nodeId " + nodeId + " Node Transitioned from " + oldState + " to "
         		+ getState() + " due to " + event.getType());
+        try {
+        	transitionLogger.append("claudia: " + " nodeId " + nodeId + " Node Transitioned from " + oldState + " to "
+        		+ getState() + " due to " + event.getType() + "\n");
+        	transitionLogger.flush();
+        }
+        catch(IOException e)
+        {
+        	LOG.error("Unable to append to file: " + e.getMessage());
+        }
       }
     }
     
