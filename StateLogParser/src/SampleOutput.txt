@@ -1,0 +1,47 @@
+Printing state transition map
+State transition: ACCEPTEDtoFAILED Num of Apps: 0 Apps: 
+
+State transition: SUBMITTEDtoKILLED Num of Apps: 0 Apps: 
+
+State transition: NEW_SAVINGtoFAILED Num of Apps: 0 Apps: 
+
+State transition: SUBMITTEDtoSUBMITTED Num of Apps: 0 Apps: 
+
+State transition: RUNNINGtoFINISHED Num of Apps: 0 Apps: 
+
+State transition: FINISHINGtoFINISHED Num of Apps: 3 Apps: application_1385613010171_00055 application_1385613010171_0002 application_1385613010171_0001 
+
+State transition: RUNNINGtoFAILED Num of Apps: 0 Apps: 
+
+State transition: RUNNINGtoFINISHING Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
+
+State transition: ACCEPTEDtoRUNNING Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
+
+State transition: NEWtoFAILED Num of Apps: 0 Apps: 
+
+State transition: ACCEPTEDtoKILLED Num of Apps: 0 Apps: 
+
+State transition: NEW_SAVINGtoKILLED Num of Apps: 0 Apps: 
+
+State transition: RUNNINGtoKILLED Num of Apps: 0 Apps: 
+
+State transition: SUBMITTEDtoACCEPTED Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
+
+State transition: RUNNINGtoRUNNING Num of Apps: 0 Apps: 
+
+State transition: NEWtoNEW_SAVING Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
+
+State transition: NEWtoKILLED Num of Apps: 0 Apps: 
+
+State transition: ACCEPTEDtoACCEPTED Num of Apps: 0 Apps: 
+
+State transition: ACCEPTEDtoSUBMITTED Num of Apps: 0 Apps: 
+
+State transition: RUNNINGtoSUBMITTED Num of Apps: 0 Apps: 
+
+State transition: NEW_SAVINGtoSUBMITTED Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
+
+State transition: SUBMITTEDtoFAILED Num of Apps: 0 Apps: 
+
+State transition: NEWtoSUBMITTED Num of Apps: 0 Apps: 
+
