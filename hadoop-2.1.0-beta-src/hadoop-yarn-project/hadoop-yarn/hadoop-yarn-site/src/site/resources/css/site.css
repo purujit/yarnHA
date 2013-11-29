@@ -15,16 +15,15 @@
 * limitations under the License.
 */
 #banner {
-  height: 93px;
-  background: none;
+	height: 93px;
+	background: none;
 }
 
 #bannerLeft img {
-  margin-left: 30px;
-  margin-top: 10px;
+	margin-left: 30px;
+	margin-top: 10px;
 }
 
 #bannerRight img {
-  margin: 17px;
+	margin: 17px;
 }
-

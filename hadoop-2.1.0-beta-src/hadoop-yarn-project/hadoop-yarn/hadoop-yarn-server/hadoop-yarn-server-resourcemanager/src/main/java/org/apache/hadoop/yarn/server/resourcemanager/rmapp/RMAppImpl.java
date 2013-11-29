@@ -587,6 +587,8 @@ public class RMAppImpl implements RMApp, Recoverable {
       if (oldState != getState()) {
         LOG.info(appID + " State change from " + oldState + " to "
             + getState());
+        LOG.info("claudia: " + appID + " State change from " + oldState + " to "
+                + getState() + " because of " + event.getType());
       }
     } finally {
       this.writeLock.unlock();
@@ -632,7 +634,6 @@ public class RMAppImpl implements RMApp, Recoverable {
       SingleArcTransition<RMAppImpl, RMAppEvent> {
     public void transition(RMAppImpl app, RMAppEvent event) {
     };
-
   }
 
   private static final class RMAppNodeUpdateTransition extends RMAppTransition {
