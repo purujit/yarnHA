@@ -1,46 +1,47 @@
 Printing state transition map
-ACCEPTEDtoFAILED: 
+State transition: ACCEPTEDtoFAILED Num of Apps: 0 Apps: 
 
-SUBMITTEDtoKILLED: 
+State transition: SUBMITTEDtoKILLED Num of Apps: 0 Apps: 
 
-NEW_SAVINGtoFAILED: 
+State transition: NEW_SAVINGtoFAILED Num of Apps: 0 Apps: 
 
-SUBMITTEDtoSUBMITTED: 
+State transition: SUBMITTEDtoSUBMITTED Num of Apps: 0 Apps: 
 
-RUNNINGtoFINISHED: 
+State transition: RUNNINGtoFINISHED Num of Apps: 0 Apps: 
 
-FINISHINGtoFINISHED: application_1385613010171_0002 application_1385613010171_0001 
+State transition: FINISHINGtoFINISHED Num of Apps: 3 Apps: application_1385613010171_00055 application_1385613010171_0002 application_1385613010171_0001 
 
-RUNNINGtoFAILED: 
+State transition: RUNNINGtoFAILED Num of Apps: 0 Apps: 
 
-RUNNINGtoFINISHING: application_1385613010171_0002 application_1385613010171_0001 
+State transition: RUNNINGtoFINISHING Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
 
-ACCEPTEDtoRUNNING: application_1385613010171_0002 application_1385613010171_0001 
+State transition: ACCEPTEDtoRUNNING Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
 
-NEWtoFAILED: 
+State transition: NEWtoFAILED Num of Apps: 0 Apps: 
 
-ACCEPTEDtoKILLED: 
+State transition: ACCEPTEDtoKILLED Num of Apps: 0 Apps: 
 
-NEW_SAVINGtoKILLED: 
+State transition: NEW_SAVINGtoKILLED Num of Apps: 0 Apps: 
 
-RUNNINGtoKILLED: 
+State transition: RUNNINGtoKILLED Num of Apps: 0 Apps: 
 
-SUBMITTEDtoACCEPTED: application_1385613010171_0002 application_1385613010171_0001 
+State transition: SUBMITTEDtoACCEPTED Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
 
-RUNNINGtoRUNNING: 
+State transition: RUNNINGtoRUNNING Num of Apps: 0 Apps: 
 
-NEWtoNEW_SAVING: application_1385613010171_0002 application_1385613010171_0001 
+State transition: NEWtoNEW_SAVING Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
 
-NEWtoKILLED: 
+State transition: NEWtoKILLED Num of Apps: 0 Apps: 
 
-ACCEPTEDtoACCEPTED: 
+State transition: ACCEPTEDtoACCEPTED Num of Apps: 0 Apps: 
 
-ACCEPTEDtoSUBMITTED: 
+State transition: ACCEPTEDtoSUBMITTED Num of Apps: 0 Apps: 
 
-RUNNINGtoSUBMITTED: 
+State transition: RUNNINGtoSUBMITTED Num of Apps: 0 Apps: 
 
-NEW_SAVINGtoSUBMITTED: application_1385613010171_0002 application_1385613010171_0001 
+State transition: NEW_SAVINGtoSUBMITTED Num of Apps: 2 Apps: application_1385613010171_0002 application_1385613010171_0001 
 
-SUBMITTEDtoFAILED: 
+State transition: SUBMITTEDtoFAILED Num of Apps: 0 Apps: 
 
-NEWtoSUBMITTED: 
+State transition: NEWtoSUBMITTED Num of Apps: 0 Apps: 
+

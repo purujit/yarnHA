@@ -1,3 +1,5 @@
+2013-11-27 20:41:13,611 INFO org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppImpl: Sakshi application_1385613010171_00055 State change from FINISHING to FINISHED after EVENT: ATTEMPT_FINISHED
+
 /************************************************************
 STARTUP_MSG: Starting ResourceManager
 STARTUP_MSG:   host = ubuntusakshi/127.0.1.1

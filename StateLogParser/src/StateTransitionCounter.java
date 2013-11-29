@@ -101,7 +101,8 @@ public class StateTransitionCounter {
 
 		for (String s : stateTrans) {
 			List<String> applicationList = stateTransitionMap.get(s);
-			System.out.print(s + ": ");
+			System.out.print("State transition: " + s + " Num of Apps: "
+					+ applicationList.size() + " Apps: ");
 			for (String app : applicationList) {
 				System.out.print(app + " ");
 			}
