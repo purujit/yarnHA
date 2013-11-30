@@ -11,4 +11,5 @@ public class ParametersForFakeYarn {
     public static final int NM_HEARTBEAT_INTERVAL_SECONDS = 60;
     public static final int SCHEDULING_DELAY_SECONDS = 60;
     public static final int AM_HEARTBEAT_INTERVAL_SECONDS = 30;
+    public static final int AVERAGE_NM_FAILURE_PERIOD_SECONDS = 300;
 }

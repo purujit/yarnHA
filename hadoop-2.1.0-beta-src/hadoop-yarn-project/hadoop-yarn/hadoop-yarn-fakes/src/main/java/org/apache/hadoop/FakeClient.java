@@ -39,6 +39,7 @@ public class FakeClient {
                 .newRecord(ApplicationSubmissionContext.class);
         appContext.setApplicationId(response.getApplicationId());
         appContext.setApplicationName(appName);
+        appContext.setMaxAppAttempts(1);
         appContext.setApplicationType("fake");
         Resource capability = Records.newRecord(Resource.class);
         capability.setMemory(ParametersForFakeYarn.NODE_MEMORY_GB << 10);
