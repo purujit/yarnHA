@@ -48,6 +48,7 @@ public class FakeNMContainerManager extends AbstractService implements
     private Server server;
     private Map<ApplicationId, List<ContainerStatus>> containers = new ConcurrentHashMap<ApplicationId, List<ContainerStatus>>();
     private static final Log LOG = LogFactory.getLog(FakeClient.class);
+    private Map<ApplicationId, FakeAM> runningAMs = new HashMap<ApplicationId, FakeAM>();
 
     public FakeNMContainerManager(InetSocketAddress serviceAddress, MockNM nm) {
         super("ContainerManger:" + serviceAddress.toString());
@@ -118,6 +119,9 @@ public class FakeNMContainerManager extends AbstractService implements
             final FakeAM am = new FakeAM(this, containerId,
                     containerId.getApplicationAttemptId(), creds,
                     serviceAddress.getHostName(), getConfig());
+            synchronized (runningAMs) {
+                runningAMs.put(containerId.getApplicationAttemptId().getApplicationId(), am);
+            }
             this.timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -191,10 +195,25 @@ public class FakeNMContainerManager extends AbstractService implements
     }
 
     public void MarkAMFinished(ApplicationId appId, ContainerId containerId) {
+        synchronized (runningAMs) {
+         runningAMs.remove(appId);   
+        }
         ContainerStatus status = this.newContainerStatus(containerId,
                 ContainerState.COMPLETE, "");
         ArrayList<ContainerStatus> appContainers = new ArrayList<ContainerStatus>();
         appContainers.add(status);
         containers.put(appId, appContainers);
+    }
+
+    public void Kill() {
+        // stop listenting for CMP.
+        this.stop();
+        // Cancel heartbeats.
+        this.timer.cancel();
+        // stop all the AMs.
+        synchronized (runningAMs) {
+         for (FakeAM am : runningAMs.values())
+             am.Kill();
+        }
     }
 }

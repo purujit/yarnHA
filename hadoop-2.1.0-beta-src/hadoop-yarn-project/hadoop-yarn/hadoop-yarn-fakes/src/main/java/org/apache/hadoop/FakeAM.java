@@ -138,4 +138,8 @@ public class FakeAM {
             }
         }, 10000, ParametersForFakeYarn.AM_HEARTBEAT_INTERVAL_SECONDS * 1000);
     }
+
+    public void Kill() {
+        this.timer.cancel();
+    }
 }

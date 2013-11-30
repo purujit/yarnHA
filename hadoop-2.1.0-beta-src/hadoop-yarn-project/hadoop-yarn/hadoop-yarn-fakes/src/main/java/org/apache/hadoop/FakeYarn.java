@@ -27,21 +27,17 @@ import org.apache.hadoop.yarn.server.resourcemanager.MockNM;
 public class FakeYarn {
     public static void main(String[] args) {
         try {
-            Configuration conf = new YarnConfiguration();
-            System.out
-                    .println(conf
-                            .getInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,
-                                    YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_MB));
+            final Configuration conf = new YarnConfiguration();
             Path yarnSitePath = new Path(
                     "/usr/local/hadoop/etc/hadoop/yarn-site.xml");
             conf.addResource(yarnSitePath);
-
-            ResourceTracker resourceTracker;
+            final Random rnd = new Random();
+            final ResourceTracker resourceTracker;
             resourceTracker = ServerRMProxy.createRMProxy(conf,
                     ResourceTracker.class);
 
             // This vector will keep the NMs and the cms alive.
-            Vector<FakeNMContainerManager> cms = new Vector<FakeNMContainerManager>();
+            final Vector<FakeNMContainerManager> cms = new Vector<FakeNMContainerManager>();
             // Start a bunch of NMs along with corresponding ContainerManagers.
             for (int i = 0; i < ParametersForFakeYarn.NUMBER_OF_NODES; ++i) {
                 MockNM nm = new MockNM("localhost:"
@@ -50,20 +46,50 @@ public class FakeYarn {
                         resourceTracker);
                 // Create and start the container manager.
                 cms.add(new FakeNMContainerManager(new InetSocketAddress(
-                        "localhost", 12000 + i), nm));
+                        "localhost", ParametersForFakeYarn.NM_PORT_BASE + i),
+                        nm));
                 cms.lastElement().init(conf);
                 cms.lastElement().start();
             }
 
+            // Set up failures.
+            Runnable nmFailureTask = new Runnable() {
+                int nextNodeId = cms.size();
+
+                @Override
+                public void run() {
+                    int nodeToKill = rnd.nextInt(cms.size());
+                    cms.get(nodeToKill).Kill();
+                    MockNM nm = new MockNM(
+                            "localhost:"
+                                    + (ParametersForFakeYarn.NM_PORT_BASE + ++nextNodeId),
+                            ParametersForFakeYarn.NODE_MEMORY_GB << 10,
+                            resourceTracker);
+                    // Add a node to replace it.
+                    cms.set(nodeToKill, new FakeNMContainerManager(
+                            new InetSocketAddress("localhost",
+                                    ParametersForFakeYarn.NM_PORT_BASE
+                                            + nextNodeId), nm));
+                    cms.get(nodeToKill).init(conf);
+                    cms.get(nodeToKill).start();
+                }
+            };
+
+            RandomIntervalTimerTask failureTask = new RandomIntervalTimerTask(
+                    nmFailureTask, rnd,
+                    ParametersForFakeYarn.AVERAGE_NM_FAILURE_PERIOD_SECONDS);
+            failureTask.run();
+            
             // Submit a bunch of applications to hit average utilization.
             final int numConcurrentApps = (int) Math
                     .floor(ParametersForFakeYarn.TARGET_UTILIZATION
                             * ParametersForFakeYarn.NUMBER_OF_NODES);
-            int avgSubmissionPeriodSec = (ParametersForFakeYarn.AM_HEARTBEAT_INTERVAL_SECONDS/2
+            int avgSubmissionPeriodSec = (ParametersForFakeYarn.AM_HEARTBEAT_INTERVAL_SECONDS
+                    / 2
                     + ParametersForFakeYarn.APPLICATION_START_DELAY_SECONDS
                     + ParametersForFakeYarn.AVERAGE_APPLICATION_DURATION_SECONDS
                     + ParametersForFakeYarn.SCHEDULING_DELAY_SECONDS + ParametersForFakeYarn.NM_HEARTBEAT_INTERVAL_SECONDS);
-            Random rnd = new Random();
+
             for (int i = 0; i < numConcurrentApps; ++i) {
                 final FakeClient client = new FakeClient(conf);
                 Runnable submissionTask = new Runnable() {
